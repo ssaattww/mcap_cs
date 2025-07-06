@@ -14,3 +14,7 @@ site/
 
 *.db3-shm
 *.db3-wal
+
+# .NET
+[Bb]in/
+[Oo]bj/

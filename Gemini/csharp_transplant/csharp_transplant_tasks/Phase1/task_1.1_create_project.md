@@ -26,3 +26,48 @@ C#でのMCAPライブラリ開発の基盤となる、クラスライブラリ�
 -   `Mcap.CSharp` クラスライブラリプロジェクトが作成されている。
 -   `Mcap.CSharp.Tests` テストプロジェクトが作成され、`Mcap.CSharp` プロジェクトを参照している。
 -   `dotnet build` コマンドで、ソリューション全体が正常にビルドできる。
+
+## 作業状況
+
+### 1. `csharp` ディレクトリの作成
+
+```bash
+mkdir csharp
+```
+
+### 2. クラスライブラリプロジェクトの作成
+
+```bash
+dotnet new classlib -n Mcap.CSharp -f net8.0
+```
+
+### 3. テストプロジェクトの作成
+
+```bash
+dotnet new xunit -n Mcap.CSharp.Tests
+```
+
+### 4. ソリューションの作成と設定
+
+```bash
+dotnet new sln -n Mcap.CSharp
+```
+
+### 5. プロジェクトをソリューションに追加
+
+```bash
+dotnet sln add Mcap.CSharp/Mcap.CSharp.csproj
+dotnet sln add Mcap.CSharp.Tests/Mcap.CSharp.Tests.csproj
+```
+
+### 6. テストプロジェクトからクラスライブラリへの参照を追加
+
+```bash
+dotnet add Mcap.CSharp.Tests/Mcap.CSharp.Tests.csproj reference Mcap.CSharp/Mcap.CSharp.csproj
+```
+
+### 7. ソリューション全体のビルド
+
+```bash
+dotnet build
+```
