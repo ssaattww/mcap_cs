@@ -9,7 +9,7 @@ C#でのMCAPライブラリ開発の基盤となる、クラスライブラリ�
 1.  **クラスライブラリプロジェクトの作成**:
     -   ターミナルまたはコマンドプロンプトを開きます。
     -   適切なディレクトリ（例: `csharp` フォルダをリポジトリルートに作成）に移動します。
-    -   `dotnet new classlib -n Mcap.CSharp -f netstandard2.0` コマンドを実行して、.NET Standard 2.0 をターゲットとするクラスライブラリプロジェクトを作成します。
+    -   `dotnet new classlib -n Mcap.CSharp -f net8.0` コマンドを実行して、.NET 8.0 をターゲットとするクラスライブラリプロジェクトを作成します.
 
 2.  **テストプロジェクトの作成**:
     -   `dotnet new xunit -n Mcap.CSharp.Tests` コマンドを実行して、xUnitテストプロジェクトを作成します。
