@@ -16,3 +16,4 @@
 
 ## 参考
 -   `tests/conformance` ディレクトリの内容、各言語実装の適合性テスト実行方法
+-   適合性テストの仕組み調査結果: `Gemini/csharp_transplant/survey/tests_conformance_survey/tests_conformance_survey.md`
