@@ -19,11 +19,7 @@ public class FileWriter : IWritable
 
     public void Write(byte[] data, ulong size)
     {
-        if (_fileStream == null)
-        {
-            throw new InvalidOperationException("FileWriter is not open.");
-        }
-        _fileStream.Write(data, 0, (int)size);
+        _fileStream?.Write(data, 0, (int)size);
         _size += size;
     }
 

@@ -14,7 +14,7 @@ public class BufferWriter : IWritable
 
     public void Write(byte[] data, ulong size)
     {
-        _buffer.AddRange(data);
+        _buffer.AddRange(data.Take((int)size));
         _size += size;
     }
 

@@ -38,34 +38,27 @@ namespace Mcap.CSharp.Mcap
             WriteRecord(OpCode.Footer, footer);
         }
 
-        private void WriteRecord<T>(OpCode opCode, T record) where T : IWritable
+        public void AddSchema(Schema schema)
         {
-            // TBD: Serialize the record into a byte array
+            WriteRecord(OpCode.Schema, schema);
+        }
+
+        public void AddChannel(Channel channel)
+        {
+            WriteRecord(OpCode.Channel, channel);
+        }
+
+        public void Write(Message message)
+        {
+            WriteRecord(OpCode.Message, message);
+        }
+
+        private void WriteRecord<T>(OpCode opCode, T record) where T : IWritable, IRecordSerializable
+        {
             using var recordStream = new MemoryStream();
             using var recordBinaryWriter = new BinaryWriter(recordStream);
 
-            // Serialize the record content into the MemoryStream
-            // This part needs to be specific to each record type, or use a common serialization mechanism
-            // For now, we'll assume 'record' has a method to write its content to a BinaryWriter
-            // For Header, we'll manually serialize it here for demonstration
-            if (record is Header headerRecord)
-            {
-                recordBinaryWriter.Write(headerRecord.Profile.Length);
-                recordBinaryWriter.Write(System.Text.Encoding.UTF8.GetBytes(headerRecord.Profile));
-                recordBinaryWriter.Write(headerRecord.Library.Length);
-                recordBinaryWriter.Write(System.Text.Encoding.UTF8.GetBytes(headerRecord.Library));
-            }
-            else if (record is Footer footerRecord)
-            {
-                recordBinaryWriter.Write(footerRecord.SummaryStart);
-                recordBinaryWriter.Write(footerRecord.SummaryOffset);
-                recordBinaryWriter.Write(footerRecord.SummaryCrc);
-            }
-            else
-            {
-                throw new NotImplementedException($"Serialization for record type {record.GetType().Name} is not implemented.");
-            }
-
+            record.Write(recordBinaryWriter);
             byte[] recordBytes = recordStream.ToArray();
 
             _writer.Write(new byte[] { (byte)opCode }, 1); // Write OpCode
