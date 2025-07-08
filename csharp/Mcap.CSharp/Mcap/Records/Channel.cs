@@ -5,7 +5,7 @@ namespace Mcap.CSharp.Mcap.Records;
 /// <summary>
 /// Corresponds to the C++ `mcap::Channel` struct (defined in `cpp/mcap/include/mcap/types.hpp`).
 /// </summary>
-public class Channel : IWritable
+public class Channel : IWritable, IRecordSerializable
 {
     public ushort Id { get; set; }
     public string Topic { get; set; } = "";

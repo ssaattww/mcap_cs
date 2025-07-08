@@ -53,15 +53,12 @@ namespace Mcap.CSharp.Mcap
             WriteRecord(OpCode.Message, message);
         }
 
-        private void WriteRecord<T>(OpCode opCode, T record) where T : IWritable
+        private void WriteRecord<T>(OpCode opCode, T record) where T : IWritable, IRecordSerializable
         {
-            // TBD: Serialize the record into a byte array
             using var recordStream = new MemoryStream();
             using var recordBinaryWriter = new BinaryWriter(recordStream);
 
-            // Serialize the record content into the MemoryStream
             record.Write(recordBinaryWriter);
-
             byte[] recordBytes = recordStream.ToArray();
 
             _writer.Write(new byte[] { (byte)opCode }, 1); // Write OpCode

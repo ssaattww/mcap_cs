@@ -5,7 +5,7 @@ namespace Mcap.CSharp.Mcap.Records;
 /// <summary>
 /// Corresponds to the C++ `mcap::Message` struct (defined in `cpp/mcap/include/mcap/types.hpp`).
 /// </summary>
-public class Message : IWritable
+public class Message : IWritable, IRecordSerializable
 {
     public ushort ChannelId { get; set; }
     public uint Sequence { get; set; }

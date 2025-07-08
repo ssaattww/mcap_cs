@@ -18,11 +18,6 @@ public class BufferWriter : IWritable
         _size += size;
     }
 
-    public void Write(BinaryWriter writer)
-    {
-        throw new NotImplementedException("BufferWriter does not directly write to a BinaryWriter. This method is part of IWritable for records to write themselves.");
-    }
-
     public void End()
     {
         // No-op for in-memory buffer

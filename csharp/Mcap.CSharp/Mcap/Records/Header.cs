@@ -5,7 +5,7 @@ namespace Mcap.CSharp.Mcap.Records
     /// <summary>
     /// Corresponds to the C++ `mcap::Header` struct (defined in `cpp/mcap/include/mcap/types.hpp`).
     /// </summary>
-    public class Header : IWritable
+    public class Header : IWritable, IRecordSerializable
     {
     public string Profile { get; set; } = "";
     public string Library { get; set; } = "";

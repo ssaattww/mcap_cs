@@ -83,3 +83,8 @@ GitHub Issue: #7
 - **問題:** `McapWriter.WriteRecord` メソッド内で `record.Write(recordBinaryWriter);` を呼び出した際、`IWritable` インターフェースの `Write(byte[] data, ulong size)` メソッドが呼び出されてしまい、期待通りに各レコードクラスの `Write(BinaryWriter writer)` メソッドが呼び出されませんでした。
 - **原因:** インターフェースのオーバーロード解決の仕組みによるものです。
 - **解決策:** `((dynamic)record).Write(recordBinaryWriter);` のように `dynamic` キーワードを使用して、実行時に適切な `Write` メソッドが呼び出されるように修正しました。
+
+### 9. `dynamic` キーワードの削除と `IRecordSerializable` の導入
+- **問題:** `McapWriter.WriteRecord` メソッドで `dynamic` キーワードを使用していたため、型安全性が損なわれ、コードの可読性も低下していました。
+- **原因:** `IWritable` インターフェースがシリアライズロジックと書き込みロジックの両方を担っていたため、適切なインターフェース分離ができていませんでした。
+- **解決策:** `IWritable` インターフェースから `Write(BinaryWriter writer)` メソッドを削除し、`IRecordSerializable` インターフェースを導入しました。これにより、各レコードクラスは `IRecordSerializable` を実装し、`McapWriter.WriteRecord` メソッドは `IRecordSerializable` 制約を持つジェネリックメソッドとして定義され、`dynamic` キーワードなしで型安全にシリアライズロジックを呼び出せるようになりました。

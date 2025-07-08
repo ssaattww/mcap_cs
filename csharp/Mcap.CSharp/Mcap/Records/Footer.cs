@@ -5,7 +5,7 @@ namespace Mcap.CSharp.Mcap.Records;
 /// <summary>
 /// Corresponds to the C++ `mcap::Footer` struct (defined in `cpp/mcap/include/mcap/types.hpp`).
 /// </summary>
-public class Footer : IWritable
+public class Footer : IWritable, IRecordSerializable
 {
     public ulong SummaryStart { get; set; }
     public ulong SummaryOffset { get; set; }
