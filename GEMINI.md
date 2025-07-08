@@ -51,6 +51,7 @@ MCAPは、任意のメッセージシリアライゼーションを使用したp
 - taskの完了時には以下の２つの作業を行うこと
   - task完了後はdevelopブランチへプルリクエストを作成すること
   - taskの実施状況の最後に完了と入力する
+  - 終了したtaskのgithub issueはclose
 - 「TBD」「Todo」がある場合は、該当のtaskに残件があることを記載する。
   - 付随してgithubにサブissueを作成すること
 
