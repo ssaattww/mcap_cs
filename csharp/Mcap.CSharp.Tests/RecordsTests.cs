@@ -38,11 +38,11 @@ public class RecordsTests
         var footer = new Footer
         {
             SummaryStart = 100UL,
-            SummaryOffsetStart = 200UL,
+            SummaryOffset = 200UL,
             SummaryCrc = 0x12345678U
         };
         Assert.Equal(100UL, footer.SummaryStart);
-        Assert.Equal(200UL, footer.SummaryOffsetStart);
+        Assert.Equal(200UL, footer.SummaryOffset);
         Assert.Equal(0x12345678U, footer.SummaryCrc);
     }
 
