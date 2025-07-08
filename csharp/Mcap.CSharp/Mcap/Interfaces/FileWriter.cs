@@ -17,13 +17,14 @@ public class FileWriter : IWritable
         _fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
     }
 
+    public void Write(BinaryWriter writer)
+    {
+        throw new NotImplementedException();
+    }
+
     public void Write(byte[] data, ulong size)
     {
-        if (_fileStream == null)
-        {
-            throw new InvalidOperationException("FileWriter is not open.");
-        }
-        _fileStream.Write(data, 0, (int)size);
+        _fileStream?.Write(data, 0, (int)size);
         _size += size;
     }
 

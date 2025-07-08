@@ -1,12 +1,8 @@
+using Mcap.CSharp.Mcap.Interfaces;
+
 namespace Mcap.CSharp.Mcap.Records;
 
 /// <summary>
-/// Corresponds to the C++ `mcap::Schema` struct.
+/// Corresponds to the C++ `mcap::Schema` struct (defined in `cpp/mcap/include/mcap/types.hpp`).
 /// </summary>
-public class Schema
-{
-    public ushort Id { get; set; }
-    public string Name { get; set; } = "";
-    public string Encoding { get; set; } = "";
-    public byte[] Data { get; set; } = Array.Empty<byte>();
-}
+public class Schema : IWritable

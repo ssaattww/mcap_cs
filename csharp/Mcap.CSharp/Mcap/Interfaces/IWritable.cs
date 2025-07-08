@@ -9,6 +9,7 @@ public interface IWritable
 {
     bool CrcEnabled { get; set; }
     void Write(byte[] data, ulong size);
+    void Write(BinaryWriter writer);
     void End();
     ulong Size();
     uint Crc();

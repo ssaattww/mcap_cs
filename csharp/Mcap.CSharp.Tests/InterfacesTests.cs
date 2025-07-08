@@ -140,6 +140,11 @@ public class InterfacesTests
             LastWrittenData = data;
             LastWrittenSize = size;
         }
+
+        public void Write(BinaryWriter writer)
+        {
+            throw new NotImplementedException();
+        }
         public void End() { }
         public ulong Size() { return 0; }
         public uint Crc() { return 0; }

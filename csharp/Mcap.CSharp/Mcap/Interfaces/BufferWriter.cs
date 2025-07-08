@@ -14,8 +14,13 @@ public class BufferWriter : IWritable
 
     public void Write(byte[] data, ulong size)
     {
-        _buffer.AddRange(data);
+        _buffer.AddRange(data.Take((int)size));
         _size += size;
+    }
+
+    public void Write(BinaryWriter writer)
+    {
+        throw new NotImplementedException("BufferWriter does not directly write to a BinaryWriter. This method is part of IWritable for records to write themselves.");
     }
 
     public void End()
