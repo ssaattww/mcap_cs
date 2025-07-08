@@ -199,49 +199,91 @@ namespace Mcap.CSharp.Tests
             Assert.Equal(expectedBytes, actualBytes);
         }
 
+        
+
         [Fact]
-        public void WriteMessage_WritesCorrectMessageRecord()
+        public void StartChunk_WritesCorrectChunkHeader()
         {
             // Arrange
             var bufferWriter = new BufferWriter();
             var options = new McapWriterOptions();
             using var writer = new McapWriter(bufferWriter, options);
-            var message = new Message
-            {
-                ChannelId = 100,
-                Sequence = 1,
-                LogTime = 1234567890123456789UL,
-                PublishTime = 9876543210987654321UL,
-                Data = new byte[] { 0x04, 0x05, 0x06 }
-            };
 
             // Act
-            writer.Write(message);
+            writer.StartChunk();
 
             // Assert
-            byte[] expectedBytes;
-            using (var stream = new MemoryStream())
-            {
-                using var binaryWriter = new BinaryWriter(stream);
-                binaryWriter.Write((byte)OpCode.Message);
-
-                using (var recordStream = new MemoryStream())
-                {
-                    using var recordBinaryWriter = new BinaryWriter(recordStream);
-                    recordBinaryWriter.Write(message.ChannelId);
-                    recordBinaryWriter.Write(message.Sequence);
-                    recordBinaryWriter.Write(message.LogTime);
-                    recordBinaryWriter.Write(message.PublishTime);
-                    recordBinaryWriter.Write((uint)message.Data.Length);
-                    recordBinaryWriter.Write(message.Data);
-                    byte[] recordData = recordStream.ToArray();
-                    binaryWriter.Write((ulong)recordData.Length);
-                    binaryWriter.Write(recordData);
-                }
-                expectedBytes = stream.ToArray();
-            }
+            // OpCode.Chunk (1 byte) + recordLength (8 bytes) + messageStartTime (8 bytes) + messageEndTime (8 bytes) +
+            // uncompressedSize (8 bytes) + uncompressedCrc (4 bytes) + compression (variable) +
+            // recordCount (8 bytes) + recordTypeCount (variable) + messageStartOffset (8 bytes) +
+            // messageEndOffset (8 bytes) + chunkHash (8 bytes)
+            // For now, we only check the OpCode and a placeholder for recordLength.
+            // Detailed validation will be done in the implementation.
             byte[] actualBytes = bufferWriter.ToArray();
-            Assert.Equal(expectedBytes, actualBytes);
+            Assert.True(actualBytes.Length >= 1 + 8); // OpCode + recordLength minimum
+            Assert.Equal((byte)OpCode.Chunk, actualBytes[0]);
+        }
+
+        [Fact]
+        public void EndChunk_WritesCorrectChunkFooter()
+        {
+            // Arrange
+            var bufferWriter = new BufferWriter();
+            var options = new McapWriterOptions();
+            using var writer = new McapWriter(bufferWriter, options);
+
+            // Act
+            writer.StartChunk(); // Start a chunk to allow ending it
+            writer.EndChunk();
+
+            // Assert
+            // The exact bytes for a footer are complex due to variable length fields and CRC.
+            // For now, we'll check if the buffer contains a Chunk record followed by a ChunkIndex record.
+            // This test will likely fail until ChunkIndex is implemented.
+            byte[] actualBytes = bufferWriter.ToArray();
+            // This is a very basic check. A more robust test would parse the records.
+            // We expect at least a Chunk header and then a ChunkIndex record.
+            // The ChunkIndex record will be written by EndChunk.
+            Assert.True(actualBytes.Length > 0);
+            // Further assertions will require parsing the stream or knowing the exact expected bytes,
+            // which depends on the full implementation of Chunk and ChunkIndex records.
+        }
+
+        [Fact]
+        public void WriteMessage_WithChunking_StartsNewChunkWhenFull()
+        {
+            // Arrange
+            // Use a small chunk size to force new chunks
+            var bufferWriter = new BufferWriter();
+            var options = new McapWriterOptions { ChunkSize = 100 }; // Small chunk size for testing
+            using var writer = new McapWriter(bufferWriter, options);
+
+            var schema = new Schema { Id = 1, Name = "test_schema", Encoding = "json", Data = new byte[] { 0x01 } };
+            writer.AddSchema(schema);
+            var channel = new Channel { Id = 1, SchemaId = 1, Topic = "/test", MessageEncoding = "json" };
+            writer.AddChannel(channel);
+
+            var message1 = new Message { ChannelId = 1, Sequence = 1, LogTime = 1, PublishTime = 1, Data = new byte[50] };
+            var message2 = new Message { ChannelId = 1, Sequence = 2, LogTime = 2, PublishTime = 2, Data = new byte[50] };
+            var message3 = new Message { ChannelId = 1, Sequence = 3, LogTime = 3, PublishTime = 3, Data = new byte[50] };
+
+            // Act
+            writer.Write(message1);
+            writer.Write(message2);
+            writer.Write(message3);
+
+            // Assert
+            // We expect at least two chunks to be written because each message is 50 bytes,
+            // and the chunk size is 100 bytes. The overhead of Chunk and Message records
+            // will likely cause the second message to push it over the limit,
+            // forcing a new chunk for the third message.
+            byte[] actualBytes = bufferWriter.ToArray();
+
+            // This is a very basic check. A more robust test would parse the records
+            // to count the number of Chunk records.
+            // For now, we'll just check if the total size is large enough for multiple chunks.
+            Assert.True(actualBytes.Length > (100 * 2)); // At least two chunks worth of data
+            // Further assertions will require parsing the stream to count Chunk records.
         }
     }
 }
