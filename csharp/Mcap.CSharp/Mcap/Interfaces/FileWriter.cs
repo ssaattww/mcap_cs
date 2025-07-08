@@ -5,7 +5,7 @@ namespace Mcap.CSharp.Mcap.Interfaces;
 /// <summary>
 /// Corresponds to the C++ `mcap::FileWriter` class.
 /// </summary>
-public class FileWriter : IWritable
+public class FileWriter : IStreamWriter
 {
     private FileStream? _fileStream;
     private ulong _size = 0;
@@ -48,5 +48,15 @@ public class FileWriter : IWritable
     public void Flush()
     {
         _fileStream?.Flush();
+    }
+
+    public void Seek(long offset, SeekOrigin origin)
+    {
+        _fileStream?.Seek(offset, origin);
+        // Update _size if seeking beyond current size
+        if ((ulong)_fileStream?.Position > _size)
+        {
+            _size = (ulong)_fileStream.Position;
+        }
     }
 }

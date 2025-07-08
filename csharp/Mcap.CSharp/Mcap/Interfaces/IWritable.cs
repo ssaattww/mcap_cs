@@ -15,3 +15,4 @@ public interface IWritable
     void ResetCrc();
     void Flush();
 }
+

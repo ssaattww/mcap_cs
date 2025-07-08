@@ -5,16 +5,13 @@ namespace Mcap.CSharp.Mcap.Records;
 /// <summary>
 /// Corresponds to the C++ `mcap::Channel` struct (defined in `cpp/mcap/include/mcap/types.hpp`).
 /// </summary>
-public class Channel : IWritable, IRecordSerializable
+public class Channel : IRecordSerializable
 {
     public ushort Id { get; set; }
     public string Topic { get; set; } = "";
     public string MessageEncoding { get; set; } = "";
     public ushort SchemaId { get; set; }
     public Dictionary<string, string> Metadata { get; set; } = new Dictionary<string, string>();
-
-    // IWritable implementation
-    public bool CrcEnabled { get; set; }
 
     public void Write(BinaryWriter writer)
     {
@@ -32,35 +29,5 @@ public class Channel : IWritable, IRecordSerializable
             writer.Write((uint)entry.Value.Length);
             writer.Write(System.Text.Encoding.UTF8.GetBytes(entry.Value));
         }
-    }
-
-    public void Write(byte[] data, ulong size)
-    {
-        throw new NotImplementedException("This method is not used for serialization. Use Write(BinaryWriter writer) instead.");
-    }
-
-    public void End()
-    {
-        throw new NotImplementedException();
-    }
-
-    public ulong Size()
-    {
-        return 0;
-    }
-
-    public uint Crc()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void ResetCrc()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Flush()
-    {
-        throw new NotImplementedException();
     }
 }
