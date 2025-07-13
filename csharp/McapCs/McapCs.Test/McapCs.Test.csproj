@@ -20,8 +20,4 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Mcap.CSharp\Mcap.CSharp.csproj" />
-  </ItemGroup>
-
 </Project>

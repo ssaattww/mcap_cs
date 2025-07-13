@@ -1,4 +1,4 @@
-namespace Mcap.CSharp.Tests;
+namespace McapCs.Test;
 
 public class UnitTest1
 {

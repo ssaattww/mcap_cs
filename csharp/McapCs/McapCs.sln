@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "McapCs", "McapCs.csproj", "{DA59419A-AD47-7FAC-98F8-387FB8779DAE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "McapCs.Test", "McapCs.Test\McapCs.Test.csproj", "{744FB95F-01B1-6554-04AD-4E71D5C3C722}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DA59419A-AD47-7FAC-98F8-387FB8779DAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA59419A-AD47-7FAC-98F8-387FB8779DAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA59419A-AD47-7FAC-98F8-387FB8779DAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA59419A-AD47-7FAC-98F8-387FB8779DAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{744FB95F-01B1-6554-04AD-4E71D5C3C722}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{744FB95F-01B1-6554-04AD-4E71D5C3C722}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{744FB95F-01B1-6554-04AD-4E71D5C3C722}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{744FB95F-01B1-6554-04AD-4E71D5C3C722}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {27F66590-65AE-4817-BF93-67FD6BEE76CA}
+	EndGlobalSection
+EndGlobal
