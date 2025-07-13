@@ -11,9 +11,12 @@ public class BufferWriter : ChunkWriter
     // No specific end logic for buffer writer
   }
 
-  public override ulong Size()
+  public override ulong Size
   {
-    return (ulong)buffer.Count;
+    get
+    {
+      return (ulong)buffer.Count;
+    }
   }
 
   public override void Flush()
@@ -31,7 +34,7 @@ public class BufferWriter : ChunkWriter
     get { return buffer.Count == 0; }
   }
 
-  public override ulong CompressedSize => Size();
+  public override ulong CompressedSize => Size;
   public override byte[] Data => buffer.ToArray();
   public override byte[] CompressedData => buffer.ToArray();
 

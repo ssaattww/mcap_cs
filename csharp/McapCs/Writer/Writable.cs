@@ -6,7 +6,7 @@ public abstract class Writable
 {
 
     public abstract void End();
-    public abstract ulong Size();
+    public abstract ulong Size{ get; }
     public abstract void Flush();
     protected abstract void HandleWrite(byte[] data);
     public void Write(byte[] data)
