@@ -4,10 +4,11 @@
 using McapCs.Crc;
 using McapCs.Record;
 using McapCs.Types;
+using System;
 
 namespace McapCs.Writer;
 
-public class McapWriter {
+public class McapWriter : IDisposable {
 
   /**
    * @brief Open a new MCAP file for writing and Write the header.
@@ -293,6 +294,11 @@ public class McapWriter {
     // Only the channels and schemas actually referenced in the file will be written to it.
 
     opened_ = false;
+  }
+
+  public void Dispose()
+  {
+    Close();
   }
 
   /**
@@ -627,8 +633,8 @@ public class McapWriter {
     // recordSize: id (2 bytes) + name length (4 bytes) + name string size + encoding length (4 bytes) + encoding string size + data length (4 bytes) + data bytes size
     // recordSize: ID (2バイト) + 名前長 (4バイト) + 名前文字列サイズ + エンコーディング長 (4バイト) + エンコーディング文字列サイズ + データ長 (4バイト) + データバイトサイズ
     ulong recordSize = /* id */ 2 +
-                              /* name */ 4 + (ulong)schema.name.Length +
-                              /* encoding */ 4 + (ulong)schema.encoding.Length +
+                              /* name */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(schema.name).Length +
+                              /* encoding */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(schema.encoding).Length +
                               /* data */ 4 + (ulong)schema.data.Count;
 
     Write(output, EOpCode.Schema);
@@ -650,8 +656,8 @@ public class McapWriter {
     // recordSize: id (2 bytes) + topic length (4 bytes) + topic string size + message_encoding length (4 bytes) + message_encoding string size + schema_id (2 bytes) + metadata length (4 bytes) + metadata bytes size
     // recordSize: ID (2バイト) + トピック長 (4バイト) + トピック文字列サイズ + メッセージエンコーディング長 (4バイト) + メッセージエンコーディング文字列サイズ + スキーマID (2バイト) + メタデータ長 (4バイト) + メタデータバイトサイズ
     ulong recordSize = /* id */ 2 +
-                              /* topic */ 4 + (ulong)channel.topic.Length +
-                              /* message_encoding */ 4 + (ulong)channel.messageEncoding.Length +
+                              /* topic */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(channel.topic).Length +
+                              /* message_encoding */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(channel.messageEncoding).Length +
                               /* schema_id */ 2 +
                               /* metadata */ 4 + metadataSize;
 
@@ -693,7 +699,7 @@ public class McapWriter {
   {
     // recordSize: name length (4 bytes) + name string size + logTime (8 bytes) + createTime (8 bytes) + mediaType length (4 bytes) + mediaType string size + dataSize (8 bytes) + data bytes size + crc (4 bytes)
     // recordSize: 名前長 (4バイト) + 名前文字列サイズ + ログタイム (8バイト) + 作成タイム (8バイト) + メディアタイプ長 (4バイト) + メディアタイプ文字列サイズ + データサイズ (8バイト) + データバイトサイズ + CRC (4バイト)
-    ulong recordSize = 4 + (ulong)attachment.name.Length + 8 + 8 + 4 + (ulong)attachment.mediaType.Length +
+    ulong recordSize = 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(attachment.name).Length + 8 + 8 + 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(attachment.mediaType).Length +
                               8 + attachment.dataSize + 4;
 
     Write(output, EOpCode.Attachment);
@@ -717,7 +723,7 @@ public class McapWriter {
     ulong metadataSize = McapCs.Util.StaticMethoads.KeyValueMapSize(metadata.metadata);
     // recordSize: name length (4 bytes) + name string size + metadata length (4 bytes) + metadata bytes size
     // recordSize: 名前長 (4バイト) + 名前文字列サイズ + メタデータ長 (4バイト) + メタデータバイトサイズ
-    ulong recordSize = 4 + (ulong)metadata.name.Length + 4 + metadataSize;
+    ulong recordSize = 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(metadata.name).Length + 4 + metadataSize;
 
     Write(output, EOpCode.Metadata);
     Write(output, recordSize);
@@ -732,7 +738,7 @@ public class McapWriter {
   {
     // recordSize: messageStartTime (8 bytes) + messageEndTime (8 bytes) + uncompressedSize (8 bytes) + uncompressedCrc (4 bytes) + compression length (4 bytes) + compression string size + compressedSize (8 bytes) + compressed data size
     // recordSize: メッセージ開始時刻 (8バイト) + メッセージ終了時刻 (8バイト) + 非圧縮サイズ (8バイト) + 非圧縮CRC (4バイト) + 圧縮長 (4バイト) + 圧縮文字列サイズ + 圧縮サイズ (8バイト) + 圧縮データサイズ
-    ulong recordSize = 8 + 8 + 8 + 4 + 4 + (ulong)chunk.compression.Length + 8 + chunk.compressedSize;
+    ulong recordSize = 8 + 8 + 8 + 4 + 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(chunk.compression).Length + 8 + chunk.compressedSize;
 
     Write(output, EOpCode.Chunk);
     Write(output, recordSize);
@@ -786,7 +792,7 @@ public class McapWriter {
                               /* chunk_length */ 8 +
                               /* message_index_offsets */ 4 + messageIndexOffsetsSize +
                               /* message_index_length */ 8 +
-                              /* compression */ 4 + (ulong)index.compression.Length +
+                              /* compression */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(index.compression).Length +
                               /* compressed_size */ 8 +
                               /* uncompressed_size */ 8;
 
@@ -822,8 +828,8 @@ public class McapWriter {
                               /* log_time */ 8 +
                               /* create_time */ 8 +
                               /* data_size */ 8 +
-                              /* name */ 4 + (ulong)index.name.Length +
-                              /* media_type */ 4 + (ulong)index.mediaType.Length;
+                              /* name */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(index.name).Length +
+                              /* media_type */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(index.mediaType).Length;
 
     Write(output, EOpCode.AttachmentIndex);
     Write(output, recordSize);
@@ -845,7 +851,7 @@ public class McapWriter {
     // recordSize: オフセット (8バイト) + 長さ (8バイト) + 名前長 (4バイト) + 名前文字列サイズ
     ulong recordSize = /* offset */ 8 +
                               /* length */ 8 +
-                              /* name */ 4 + (ulong)index.name.Length;
+                              /* name */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(index.name).Length;
 
     Write(output, EOpCode.MetadataIndex);
     Write(output, recordSize);
@@ -941,8 +947,9 @@ public class McapWriter {
 
   public static void Write(Writable output, string str)
   {
-    Write(output, (uint)str.Length);
-    output.Write(System.Text.Encoding.UTF8.GetBytes(str));
+    byte[] bytes = System.Text.Encoding.UTF8.GetBytes(str);
+    Write(output, (uint)bytes.Length);
+    output.Write(bytes);
   }
   public static void Write(Writable output, List<byte> bytes)
   {
@@ -959,11 +966,21 @@ public class McapWriter {
   }
   public static void Write(Writable output, uint value)
   {
-    output.Write(BitConverter.GetBytes(value));
+    byte[] bytes = BitConverter.GetBytes(value);
+    if (!BitConverter.IsLittleEndian)
+    {
+      Array.Reverse(bytes);
+    }
+    output.Write(bytes);
   }
   public static void Write(Writable output, ulong value)
   {
-    output.Write(BitConverter.GetBytes(value));
+    byte[] bytes = BitConverter.GetBytes(value);
+    if (!BitConverter.IsLittleEndian)
+    {
+      Array.Reverse(bytes);
+    }
+    output.Write(bytes);
   }
   public static void Write(Writable output, byte[] data, ulong size)
   {
