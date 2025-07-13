@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-
+using McapCs.Types;
 namespace McapCs.Writer;
 
 public class FileWriter : Writable, IDisposable
@@ -52,18 +52,18 @@ public class FileWriter : Writable, IDisposable
     _size += size;
   }
 
-  public bool Open(string filePath)
+  public Status Open(string filePath)
   {
     try
     {
       End(); // 既に開いている場合は閉じる
       _writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write));
       _size = 0;
-      return true;
+      return new Status(StatusCode.Success);
     }
-    catch (Exception)
+    catch (Exception ex)
     {
-      return false;
+      return new Status(StatusCode.OpenFailed, ex.Message);
     }
   }
 }

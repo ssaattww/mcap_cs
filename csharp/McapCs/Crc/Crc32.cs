@@ -33,6 +33,11 @@ public static class Crc32
 
     public static uint Update(uint runningCrc, byte[] data, int offset)
     {
+        // In C++, data manipulation often uses pointer arithmetic (e.g., `data + offset`).
+        // In C#, the `offset` parameter serves a similar purpose, allowing CRC calculation
+        // to start from a specific index within the `data` byte array.
+        // C++では、データ操作にポインタ演算（例: `data + offset`）がよく使用されます。
+        // C#では、`offset` パラメータが同様の目的を果たし、`data` バイト配列内の特定のインデックスからCRC計算を開始できます。
         if (data == null)
         {
             throw new ArgumentNullException(nameof(data));
