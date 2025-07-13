@@ -2,21 +2,21 @@ using McapCs.Crc;
 
 namespace McapCs.Writer;
 
-abstract class Writable
+public abstract class Writable
 {
 
     public abstract void End();
     public abstract ulong Size();
     public abstract void Flush();
-    protected abstract void HandleWrite(byte[] data, ulong size);
-    public void Write(byte[] data, ulong size)
+    protected abstract void HandleWrite(byte[] data);
+    public void Write(byte[] data)
     {
         if (CrcEnabled)
         {
-            crc = Crc32.Update(crc, data, 0, (int)size);
+            crc = Crc32.Update(crc, data, 0);
         }
 
-        HandleWrite(data, size);
+        HandleWrite(data);
     }
     public void ResetCrc()
     {

@@ -31,16 +31,19 @@ public static class Crc32
         }
     }
 
-    public static uint Update(uint runningCrc, byte[] data, int offset, int count)
+    public static uint Update(uint runningCrc, byte[] data, int offset)
     {
         if (data == null)
         {
             throw new ArgumentNullException(nameof(data));
         }
+
+        int count = data.Length;
         if (offset < 0 || count < 0 || offset + count > data.Length)
         {
             throw new ArgumentOutOfRangeException();
         }
+
 
         uint r = runningCrc;
         int end = offset + count;
@@ -63,7 +66,7 @@ public static class Crc32
         }
         return r;
     }
-    
+
     public static uint Final(uint crc)
     {
         return crc ^ 0xFFFFFFFF;

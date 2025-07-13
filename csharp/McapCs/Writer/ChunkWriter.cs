@@ -3,7 +3,7 @@ using System.IO;
 
 namespace McapCs.Writer;
 
-abstract class ChunkWriter : Writable
+public abstract class ChunkWriter : Writable
 {
     public abstract ulong CompressedSize { get; }
     public abstract bool Empty { get; }
