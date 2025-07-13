@@ -11,9 +11,9 @@ public struct ChunkIndex
   public ulong messageEndTime;
   public ulong chunkStartOffset;
   public ulong chunkLength;
-  public Dictionary<ushort, ulong> messageIndexOffsets;
+  public Dictionary<ushort, ulong> messageIndexOffsets = new Dictionary<ushort, ulong>();
   public ulong messageIndexLength;
-  public string compression;
+  public string compression = string.Empty;
   public ulong compressedSize;
   public ulong uncompressedSize;
 

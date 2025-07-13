@@ -10,9 +10,9 @@ public struct Chunk
   public ulong messageEndTime;
   public ulong uncompressedSize;
   public uint uncompressedCrc;
-  public string compression;
+  public string compression = string.Empty;
   public ulong compressedSize;
-  public List<byte> records;
+  public List<byte> records = new List<byte>();
 
   public Chunk()
   {

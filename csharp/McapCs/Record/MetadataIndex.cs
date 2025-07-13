@@ -10,7 +10,7 @@ public struct MetadataIndex
 {
   public ulong offset;
   public ulong length;
-  public string name;
+  public string name = string.Empty;
 
   public MetadataIndex()
   {

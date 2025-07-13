@@ -9,10 +9,10 @@ public struct Attachment
 {
   public ulong logTime;
   public ulong createTime;
-  public string name;
-  public string mediaType;
+  public string name = string.Empty;
+  public string mediaType = string.Empty;
   public ulong dataSize;
-  public List<byte>? data;
+  public List<byte> data = new List<byte>();
   public uint crc;
 
   public Attachment()

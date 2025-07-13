@@ -9,10 +9,10 @@
 namespace McapCs.Record;
 public struct Channel {
   public ushort id;
-  public string topic;
-  public string messageEncoding;
+  public string topic = string.Empty;
+  public string messageEncoding = string.Empty;
   public ushort schemaId;
-  public Dictionary<string, string>? metadata;
+  public Dictionary<string, string> metadata = new Dictionary<string, string>();
 
   public Channel()
   {
@@ -25,6 +25,6 @@ public struct Channel {
     this.topic = topic;
     this.messageEncoding = messageEncoding;
     this.schemaId = schemaId;
-    this.metadata = metadata;
+    this.metadata = metadata ?? new Dictionary<string, string>();
   }
 };

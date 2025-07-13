@@ -6,8 +6,8 @@ namespace McapCs.Record;
 
 public struct Metadata
 {
-  public string name;
-  public Dictionary<string, string> metadata;
+  public string name = string.Empty;
+  public Dictionary<string, string> metadata = new Dictionary<string, string>();
 
   public Metadata()
   {

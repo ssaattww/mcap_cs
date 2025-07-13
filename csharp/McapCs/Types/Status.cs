@@ -30,11 +30,13 @@ public struct Status {
   public Status()
   {
     Code = StatusCode.Success;
+    Message = string.Empty;
   }
 
   public Status(StatusCode code)
   {
     Code = code;
+    Message = string.Empty;
     switch (Code)
     {
       case StatusCode.Success:

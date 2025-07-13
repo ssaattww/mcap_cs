@@ -1027,6 +1027,10 @@ public class McapWriter {
 
   private Writable GetOutput()
   {
+    if (output_ == null)
+    {
+      throw new InvalidOperationException("Writer is not open.");
+    }
     if (chunkSize_ == 0)
     {
       return output_;
@@ -1035,25 +1039,40 @@ public class McapWriter {
     {
       case Compression.None:
       default:
-        return uncompressedChunk_;
+        if (uncompressedChunk_ == null)
+        {
+          throw new InvalidOperationException("Chunking is enabled but uncompressedChunk_ is null.");
+        }
+        else
+        {
+          return uncompressedChunk_;
+        }
+
       case Compression.Lz4:
         throw new NotImplementedException("LZ4 compression is not yet supported.");
       case Compression.Zstd:
         throw new NotImplementedException("Zstd compression is not yet supported.");
     }
   }
-  private ChunkWriter? GetChunkWriter()
+  private ChunkWriter GetChunkWriter()
   {
     if (chunkSize_ == 0)
     {
-      return null;
+      throw new InvalidOperationException("Chunking is not enabled.");
     }
 
     switch (compression_)
     {
       case Compression.None:
       default:
-        return uncompressedChunk_;
+        if (uncompressedChunk_ == null)
+        {
+          throw new InvalidOperationException("Chunking is enabled but uncompressedChunk_ is null.");
+        }
+        else
+        {
+          return uncompressedChunk_;
+        }
       case Compression.Lz4:
         throw new NotImplementedException("LZ4 compression is not yet supported.");
       case Compression.Zstd:

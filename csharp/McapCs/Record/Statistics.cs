@@ -14,7 +14,7 @@ public struct Statistics
   public uint chunkCount;
   public ulong messageStartTime;
   public ulong messageEndTime;
-  public Dictionary<ushort, ulong> channelMessageCounts;
+  public Dictionary<ushort, ulong> channelMessageCounts = new Dictionary<ushort, ulong>();
 
   public Statistics()
   {

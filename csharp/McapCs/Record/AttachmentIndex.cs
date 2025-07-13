@@ -11,8 +11,8 @@ public struct AttachmentIndex
   public ulong logTime;
   public ulong createTime;
   public ulong dataSize;
-  public string name;
-  public string mediaType;
+  public string name = string.Empty;
+  public string mediaType = string.Empty;
 
   public AttachmentIndex()
   {

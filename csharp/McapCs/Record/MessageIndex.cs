@@ -7,7 +7,7 @@ namespace McapCs.Record;
 public struct MessageIndex
 {
   public ushort channelId;
-  public List<Tuple<ulong, ulong>> records;
+  public List<Tuple<ulong, ulong>> records = new List<Tuple<ulong, ulong>>();
 
   public MessageIndex()
   {

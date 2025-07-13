@@ -30,7 +30,7 @@ public struct Message
    * valid for the lifetime of an onMessage callback or before the message
    * iterator is advanced.
    */
-  public List<byte> data = null;
+  public List<byte> data = new List<byte>();
 
   public Message()
   {
