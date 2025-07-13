@@ -1,4 +1,3 @@
-
 namespace McapCs.Writer;
 using McapCs.Types;
 
@@ -89,7 +88,7 @@ public class McapWriterOptions
   public bool noStatistics = false;
   public bool noSummaryOffsets = false;
 
-  McapWriterOptions(string profile)
+  public McapWriterOptions(string profile)
   {
     Profile = profile;
   }
