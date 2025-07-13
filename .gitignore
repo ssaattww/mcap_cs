@@ -18,3 +18,5 @@ site/
 # .NET
 [Bb]in/
 [Oo]bj/
+# venv
+*.venv/
