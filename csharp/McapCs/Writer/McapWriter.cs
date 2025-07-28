@@ -1,6 +1,3 @@
-#define MCAP_COMPRESSION_NO_LZ4
-#define MCAP_COMPRESSION_NO_ZSTD
-
 using McapCs.Crc;
 using McapCs.Record;
 using McapCs.Types;
@@ -93,7 +90,7 @@ public class McapWriter : IDisposable {
    *
    * @param stream Output stream to Write to.
    * @param stream 書き込み先の出力ストリーム。
-   * @param options Options for MCAP writing. `profile` is required.
+   * @param options Options for MCAP writing. `profile` is required。
    * @param options MCAP書き込みのオプション。`profile` は必須です。
    */
   public void Open(Stream stream, McapWriterOptions options)
@@ -140,6 +137,9 @@ public class McapWriter : IDisposable {
 
     // Write the Data End record
     Write(fileOutput, new DataEnd { dataSectionCrc = fileOutput.Crc });
+#if DEBUG
+    Console.WriteLine($"After DataEnd: {fileOutput.Size}");
+#endif
     if (!options_.noSummaryCRC)
     {
       output_.CrcEnabled = true;
@@ -153,18 +153,24 @@ public class McapWriter : IDisposable {
     {
       // Get the offset of the End Of File section
       summaryStart = fileOutput.Size;
-
+#if DEBUG
+      Console.WriteLine($"Summary start: {summaryStart}");
+#endif
       ulong schemaStart = fileOutput.Size;
+      ulong schemasLength = 0;
       if (!options_.noRepeatedSchemas)
       {
         // Write all schema records
         foreach (var schema in schemas_)
         {
-          Write(fileOutput, schema);
+          schemasLength += Write(fileOutput, schema);
         }
       }
-
+#if DEBUG
+      Console.WriteLine($"After schemas: {fileOutput.Size}");
+#endif
       ulong channelStart = fileOutput.Size;
+      ulong channelLength = 0;
       if (!options_.noRepeatedChannels)
       {
         // Write all channel records, but only if they appeared in this file
@@ -173,75 +179,92 @@ public class McapWriter : IDisposable {
         {
           if (channelMessageCounts.ContainsKey(channel.id))
           {
-            Write(fileOutput, channel);
+            channelLength += Write(fileOutput, channel);
           }
         }
       }
-
+#if DEBUG
+      Console.WriteLine($"After channels: {fileOutput.Size}");
+#endif
       ulong statisticsStart = fileOutput.Size;
+      ulong statisticsLength = 0;
       if (!options_.noStatistics)
       {
         // Write the statistics record
-        Write(fileOutput, statistics_);
+        statisticsLength = Write(fileOutput, statistics_);
       }
-
+#if DEBUG
+      Console.WriteLine($"After statistics: {fileOutput.Size}");
+#endif
       ulong chunkIndexStart = fileOutput.Size;
+      ulong chunkIndexLength = 0;
       if (!options_.noChunkIndex)
       {
         // Write chunk index records
         foreach (var chunkIndexRecord in chunkIndex_)
         {
-          Write(fileOutput, chunkIndexRecord);
+          chunkIndexLength += Write(fileOutput, chunkIndexRecord);
         }
       }
-
+#if DEBUG
+      Console.WriteLine($"After chunk index: {fileOutput.Size}");
+#endif
       ulong attachmentIndexStart = fileOutput.Size;
+      ulong attachmentIndexLength = 0;
       if (!options_.noAttachmentIndex)
       {
         // Write attachment index records
         foreach (var attachmentIndexRecord in attachmentIndex_)
         {
-          Write(fileOutput, attachmentIndexRecord);
+          attachmentIndexLength += Write(fileOutput, attachmentIndexRecord);
         }
       }
-
+#if DEBUG
+      Console.WriteLine($"After attachment index: {fileOutput.Size}");
+#endif
       ulong metadataIndexStart = fileOutput.Size;
+      ulong metadataIndexLength = 0;
       if (!options_.noMetadataIndex)
       {
         // Write metadata index records
         foreach (var metadataIndexRecord in metadataIndex_)
         {
-          Write(fileOutput, metadataIndexRecord);
+          metadataIndexLength += Write(fileOutput, metadataIndexRecord);
         }
       }
-
+#if DEBUG
+      Console.WriteLine($"After metadata index: {fileOutput.Size}");
+#endif
       if (!options_.noSummaryOffsets)
       {
         // Write summary offset records
         summaryOffsetStart = fileOutput.Size;
+#if DEBUG
+        Console.WriteLine($"Summary offset start: {summaryOffsetStart}");
+#endif
         if (!options_.noRepeatedSchemas && writtenSchemas_.Count > 0)
         {
-          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.Schema, groupStart = schemaStart, groupLength = channelStart - schemaStart });
+          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.Schema, groupStart = schemaStart, groupLength = schemasLength });
         }
         if (!options_.noRepeatedChannels && channels_.Count > 0)
         {
-          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.Channel, groupStart = channelStart, groupLength = statisticsStart - channelStart });
+          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.Channel, groupStart = channelStart, groupLength = channelLength });
         }
         if (!options_.noStatistics)
         {
-          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.Statistics, groupStart = statisticsStart, groupLength = chunkIndexStart - statisticsStart });
+          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.Statistics, groupStart = statisticsStart, groupLength = statisticsLength });
         }
         if (!options_.noChunkIndex && chunkIndex_.Count > 0)
         {
-          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.ChunkIndex, groupStart = chunkIndexStart, groupLength = attachmentIndexStart - chunkIndexStart });
+          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.ChunkIndex, groupStart = chunkIndexStart, groupLength = chunkIndexLength });
         }
         if (!options_.noAttachmentIndex && attachmentIndex_.Count > 0)
         {
-          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.AttachmentIndex, groupStart = attachmentIndexStart, groupLength = metadataIndexStart - attachmentIndexStart });
+          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.AttachmentIndex, groupStart = attachmentIndexStart, groupLength = attachmentIndexLength });
         }
         if (!options_.noMetadataIndex && metadataIndex_.Count > 0)
         {
-          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.MetadataIndex, groupStart = metadataIndexStart, groupLength = summaryOffsetStart - metadataIndexStart });
+          Write(fileOutput, new SummaryOffset { groupOpCode = EOpCode.MetadataIndex, groupStart = metadataIndexStart, groupLength = metadataIndexLength });
         }
       } else if (summaryStart == fileOutput.Size)
       {
@@ -252,9 +275,15 @@ public class McapWriter : IDisposable {
 
     // Write the footer and trailing magic
     Write(fileOutput, new Footer { summaryStart = summaryStart, summaryOffsetStart = summaryOffsetStart }, !options_.noSummaryCRC);
+#if DEBUG
+    Console.WriteLine($"After Footer: {fileOutput.Size}");
+#endif
     WriteMagic(fileOutput);
-
+#if DEBUG
+    Console.WriteLine($"After Magic: {fileOutput.Size}");
+#endif
     // Flush output
+    output_.Flush();
     fileOutput.End();
 
     Terminate();
@@ -272,12 +301,6 @@ public class McapWriter : IDisposable {
     fileOutput_ = null;
     streamOutput_ = null;
     uncompressedChunk_ = null;
-#if !MCAP_COMPRESSION_NO_LZ4
-    lz4Chunk_ = null;
-#endif
-#if !MCAP_COMPRESSION_NO_ZSTD
-    zstdChunk_ = null;
-#endif
 
     attachmentIndex_.Clear();
     metadataIndex_.Clear();
@@ -356,7 +379,7 @@ public class McapWriter : IDisposable {
    *
    * @param msg Message to add.
    * @param msg 追加するメッセージ。
-   * @return A non-zero error code on failure.
+   * @return A non-zero error code on failure。
    * @return 失敗した場合はゼロ以外のエラーコード。
    */
   public Status Write(Message message)
@@ -473,7 +496,7 @@ public class McapWriter : IDisposable {
    * @param attachment Attachment to add. The `attachment.crc` will be
    * calculated and set if configuration options allow CRC calculation.
    * @param attachment 追加するアタッチメント。`attachment.crc` は、設定オプションでCRC計算が許可されている場合に計算され設定されます。
-   * @return A non-zero error code on failure.
+   * @return A non-zero error code on failure。
    * @return 失敗した場合はゼロ以外のエラーコード。
    */
   public Status Write(Attachment attachment)
@@ -497,9 +520,9 @@ public class McapWriter : IDisposable {
       uint crc = Crc32.InitialValue;
       crc = Crc32.Update(crc, BitConverter.GetBytes(attachment.logTime), 0);
       crc = Crc32.Update(crc, BitConverter.GetBytes(attachment.createTime), 0);
-      crc = Crc32.Update(crc, BitConverter.GetBytes((uint)attachment.name.Length), 0);
+      crc = Crc32.Update(crc, BitConverter.GetBytes((uint)System.Text.Encoding.UTF8.GetBytes(attachment.name).Length), 0);
       crc = Crc32.Update(crc, System.Text.Encoding.UTF8.GetBytes(attachment.name), 0);
-      crc = Crc32.Update(crc, BitConverter.GetBytes((uint)attachment.mediaType.Length), 0);
+      crc = Crc32.Update(crc, BitConverter.GetBytes((uint)System.Text.Encoding.UTF8.GetBytes(attachment.mediaType).Length), 0);
       crc = Crc32.Update(crc, System.Text.Encoding.UTF8.GetBytes(attachment.mediaType), 0);
       crc = Crc32.Update(crc, BitConverter.GetBytes(attachment.dataSize), 0);
       crc = Crc32.Update(crc, attachment.data.ToArray(), 0);
@@ -530,7 +553,7 @@ public class McapWriter : IDisposable {
    *
    * @param metadata Named group of key/value string pairs to add.
    * @param metadata 追加する名前付きのキー/値文字列ペアのグループ。
-   * @return A non-zero error code on failure.
+   * @return A non-zero error code on failure。
    * @return 失敗した場合はゼロ以外のエラーコード。
    */
   public Status Write(Metadata metadata)
@@ -594,7 +617,7 @@ public class McapWriter : IDisposable {
   {
     // recordSize: profile length (4 bytes) + profile string size + library length (4 bytes) + library string size
     // recordSize: プロファイル長 (4バイト) + プロファイル文字列サイズ + ライブラリ長 (4バイト) + ライブラリ文字列サイズ
-    ulong recordSize = 4 + (ulong)header.profile.Length + 4 + (ulong)header.library.Length;
+    ulong recordSize = 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(header.profile).Length + 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(header.library).Length;
 
     Write(output, EOpCode.Header);
     Write(output, recordSize);
@@ -632,13 +655,13 @@ public class McapWriter : IDisposable {
   {
     // recordSize: id (2 bytes) + name length (4 bytes) + name string size + encoding length (4 bytes) + encoding string size + data length (4 bytes) + data bytes size
     // recordSize: ID (2バイト) + 名前長 (4バイト) + 名前文字列サイズ + エンコーディング長 (4バイト) + エンコーディング文字列サイズ + データ長 (4バイト) + データバイトサイズ
-    ulong recordSize = /* id */ 2 +
+    ulong calculatedRecordSize = /* id */ 2 +
                               /* name */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(schema.name).Length +
                               /* encoding */ 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(schema.encoding).Length +
                               /* data */ 4 + (ulong)schema.data.Count;
 
     Write(output, EOpCode.Schema);
-    Write(output, recordSize);
+    Write(output, calculatedRecordSize);
     Write(output, schema.id);
     Write(output, schema.name);
     Write(output, schema.encoding);
@@ -646,7 +669,7 @@ public class McapWriter : IDisposable {
 
     // 9: OpCode (1 byte) + Record Length (8 bytes)
     // 9: オペコード (1バイト) + レコード長 (8バイト)
-    return 9 + recordSize;
+    return 9 + calculatedRecordSize;
   }
   public static ulong Write(Writable output, Channel channel)
   {
@@ -667,6 +690,7 @@ public class McapWriter : IDisposable {
     Write(output, channel.schemaId);
     Write(output, channel.topic);
     Write(output, channel.messageEncoding);
+    Write(output, (uint)metadataSize);
     Write(output, channel.metadata, metadataSize);
 
     // 9: OpCode (1 byte) + Record Length (8 bytes)
@@ -677,7 +701,7 @@ public class McapWriter : IDisposable {
   {
     // recordSize: channelId (2 bytes) + sequence (4 bytes) + logTime (8 bytes) + publishTime (8 bytes) + dataSize (8 bytes)
     // recordSize: チャネルID (2バイト) + シーケンス (4バイト) + ログタイム (8バイト) + パブリッシュタイム (8バイト) + データサイズ (8バイト)
-    return 2 + 4 + 8 + 8 + message.dataSize;
+    return 2 + 4 + 8 + 8 + 4 + (ulong)message.data.Count;
   }
   public static ulong Write(Writable output, Message message)
   {
@@ -689,7 +713,8 @@ public class McapWriter : IDisposable {
     Write(output, message.sequence);
     Write(output, message.logTime);
     Write(output, message.publishTime);
-    Write(output, message.data);
+    Write(output, (uint)message.data.Count);
+    output.Write(message.data.ToArray());
 
     // 9: OpCode (1 byte) + Record Length (8 bytes)
     // 9: オペコード (1バイト) + レコード長 (8バイト)
@@ -709,7 +734,7 @@ public class McapWriter : IDisposable {
     Write(output, attachment.name);
     Write(output, attachment.mediaType);
     Write(output, attachment.dataSize);
-    Write(output, attachment.data);
+    output.Write(attachment.data.ToArray());
     Write(output, attachment.crc);
 
     // 9: OpCode (1 byte) + Record Length (8 bytes)
@@ -728,6 +753,7 @@ public class McapWriter : IDisposable {
     Write(output, EOpCode.Metadata);
     Write(output, recordSize);
     Write(output, metadata.name);
+    Write(output, (uint)metadataSize);
     Write(output, metadata.metadata, metadataSize);
 
     // 9: OpCode (1 byte) + Record Length (8 bytes)
@@ -738,7 +764,7 @@ public class McapWriter : IDisposable {
   {
     // recordSize: messageStartTime (8 bytes) + messageEndTime (8 bytes) + uncompressedSize (8 bytes) + uncompressedCrc (4 bytes) + compression length (4 bytes) + compression string size + compressedSize (8 bytes) + compressed data size
     // recordSize: メッセージ開始時刻 (8バイト) + メッセージ終了時刻 (8バイト) + 非圧縮サイズ (8バイト) + 非圧縮CRC (4バイト) + 圧縮長 (4バイト) + 圧縮文字列サイズ + 圧縮サイズ (8バイト) + 圧縮データサイズ
-    ulong recordSize = 8 + 8 + 8 + 4 + 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(chunk.compression).Length + 8 + chunk.compressedSize;
+    ulong recordSize = 8 + 8 + 8 + 4 + 4 + (ulong)System.Text.Encoding.UTF8.GetBytes(chunk.compression).Length + 8 + (ulong)chunk.records.Count;
 
     Write(output, EOpCode.Chunk);
     Write(output, recordSize);
@@ -748,7 +774,7 @@ public class McapWriter : IDisposable {
     Write(output, chunk.uncompressedCrc);
     Write(output, chunk.compression);
     Write(output, chunk.compressedSize);
-    Write(output, chunk.records);
+    output.Write(chunk.records.ToArray());
     output.Flush();
 
     // 9: OpCode (1 byte) + Record Length (8 bytes)
@@ -768,7 +794,7 @@ public class McapWriter : IDisposable {
     Write(output, recordSize);
     Write(output, index.channelId);
 
-    Write(output, recordsSize);
+    Write(output, (uint)recordsSize);
     foreach (var record in index.records)
     {
       Write(output, record.Item1); // timestamp
@@ -803,7 +829,7 @@ public class McapWriter : IDisposable {
     Write(output, index.chunkStartOffset);
     Write(output, index.chunkLength);
 
-    Write(output, messageIndexOffsetsSize);
+    Write(output, (uint)messageIndexOffsetsSize);
     foreach (var entry in index.messageIndexOffsets)
     {
       Write(output, entry.Key);   // channelId
@@ -891,7 +917,7 @@ public class McapWriter : IDisposable {
     Write(output, stats.messageStartTime);
     Write(output, stats.messageEndTime);
 
-    Write(output, channelMessageCountsSize);
+    Write(output, (uint)channelMessageCountsSize);
     foreach (var entry in stats.channelMessageCounts)
     {
       Write(output, entry.Key);   // channelId
@@ -936,12 +962,14 @@ public class McapWriter : IDisposable {
   }
   public static ulong Write(Writable output, Record.Record record)
   {
+#if DEBUG
+    Console.WriteLine($"Writing record: OpCode={record.opcode}, DataSize={record.dataSize}, CurrentFileSize={output.Size}");
+#endif
     Write(output, record.opcode);
     Write(output, record.dataSize);
     Write(output, record.data, record.dataSize);
 
     // 9: OpCode (1 byte) + Record Length (8 bytes)
-    // 9: オペコード (1バイト) + レコード長 (8バイト)
     return 9 + record.dataSize;
   }
 
@@ -967,19 +995,29 @@ public class McapWriter : IDisposable {
   public static void Write(Writable output, uint value)
   {
     byte[] bytes = BitConverter.GetBytes(value);
-    if (!BitConverter.IsLittleEndian)
+    if (BitConverter.IsLittleEndian)
+    {
+      // 何もしない
+    }
+    else
     {
       Array.Reverse(bytes);
     }
+    Console.WriteLine($"Writing uint {value}: {BitConverter.ToString(bytes)}");
     output.Write(bytes);
   }
   public static void Write(Writable output, ulong value)
   {
     byte[] bytes = BitConverter.GetBytes(value);
-    if (!BitConverter.IsLittleEndian)
+    if (BitConverter.IsLittleEndian)
+    {
+      // 何もしない
+    }
+    else
     {
       Array.Reverse(bytes);
     }
+    Console.WriteLine($"Writing ulong {value}: {BitConverter.ToString(bytes)}");
     output.Write(bytes);
   }
   public static void Write(Writable output, byte[] data, ulong size)
@@ -993,7 +1031,7 @@ public class McapWriter : IDisposable {
     var pairs = new List<KeyValuePair<string, string>>(map);
     pairs.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
 
-    Write(output, size > 0 ? size : McapCs.Util.StaticMethoads.KeyValueMapSize(map));
+    
     foreach (var entry in pairs)
     {
       Write(output, entry.Key);
@@ -1008,12 +1046,7 @@ public class McapWriter : IDisposable {
   FileWriter? fileOutput_ = null;
   StreamWriter? streamOutput_ = null;
   BufferWriter? uncompressedChunk_ = null;
-#if !MCAP_COMPRESSION_NO_LZ4
-  LZ4Writer? lz4Chunk_ = null;
-#endif
-#if !MCAP_COMPRESSION_NO_ZSTD
-  ZStdWriter? zstdChunk_ = null;
-#endif
+
   List<Schema> schemas_ = new List<Schema>();
   List<Channel> channels_ = new List<Channel>();
   List<AttachmentIndex> attachmentIndex_ = new List<AttachmentIndex>();
@@ -1030,16 +1063,11 @@ public class McapWriter : IDisposable {
 
   public McapWriter()
   {
-    options_ = new McapWriterOptions("default"); // Default profile
+    options_ = new McapWriterOptions("default", $"libmcap {Constants.MCAP_LIBRARY_VERSION}"); // Default profile and library
     fileOutput_ = null;
     streamOutput_ = null;
     uncompressedChunk_ = null;
-#if !MCAP_COMPRESSION_NO_LZ4
-    lz4Chunk_ = null;
-#endif
-#if !MCAP_COMPRESSION_NO_ZSTD
-    zstdChunk_ = null;
-#endif
+
   }
 
   private Writable GetOutput()

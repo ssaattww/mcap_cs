@@ -75,7 +75,7 @@ public class McapWriterOptions
    * @brief A freeform string written by recording libraries. For this library,
    * the default is "libmcap {Major}.{Minor}.{Patch}".
    */
-  public const string library = $"libmcap {Constants.MCAP_LIBRARY_VERSION}";
+  public string Library { get; set; } = $"libmcap {Constants.MCAP_LIBRARY_VERSION}";
 
   // The following options are less commonly used, providing more fine-grained
   // control of index records and the Summary section
@@ -88,8 +88,9 @@ public class McapWriterOptions
   public bool noStatistics = false;
   public bool noSummaryOffsets = false;
 
-  public McapWriterOptions(string profile)
+  public McapWriterOptions(string profile, string library)
   {
     Profile = profile;
+    Library = library;
   }
 }

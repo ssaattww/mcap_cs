@@ -13,7 +13,17 @@ namespace McapFileVerificationApp
             string outputPath = "output.mcap";
             using (var writer = new McapWriter())
             {
-                var options = new McapWriterOptions("ros2") { compression = McapCs.Types.Compression.None }; // Use a profile, e.g., "ros2"
+                var options = new McapWriterOptions("test_profile", "mcap_cs_app")
+                {
+                    compression = McapCs.Types.Compression.None,
+                    chunkSize = ulong.MaxValue
+                };
+
+                Console.WriteLine($"Opening MCAP writer with options:");
+                Console.WriteLine($"  Library: {options.Library}");
+                Console.WriteLine($"  Profile: {options.Profile}");
+                Console.WriteLine($"  Compression: {options.compression}");
+                Console.WriteLine($"  ChunkSize: {options.chunkSize}");
                 writer.Open(outputPath, options);
 
                 // Add a schema
@@ -33,24 +43,26 @@ namespace McapFileVerificationApp
                 channel.id = 1;
                 writer.AddChannel(channel);
 
-                // Write some messages
-                for (int i = 0; i < 5; i++)
+                // Write a single message
+                var data = Encoding.UTF8.GetBytes("{\"data\":\"Hello from C#\"}");
+                Console.WriteLine($"Data length: {data.Length}");
+                var message = new Message
                 {
-                    var message = new Message
-                    {
-                        channelId = 1,
-                        sequence = (uint)i,
-                        logTime = (ulong)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000),
-                        publishTime = (ulong)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000),
-                        data = Encoding.UTF8.GetBytes($"{{\"data\":\"Hello from C# {i}\"}}").ToList()
-                    };
-                    writer.Write(message);
-                }
+                    channelId = 1,
+                    sequence = 0,
+                    logTime = 1678886400000000000UL,
+                    publishTime = 1678886400000000000UL,
+                    data = data.ToList(),
+                    dataSize = (ulong)data.Length
+                };
+                writer.Write(message);
 
                 writer.Close();
             }
 
             Console.WriteLine($"MCAP file created at: {Path.GetFullPath(outputPath)}");
+            Console.WriteLine($"IsLittleEndian: {BitConverter.IsLittleEndian}");
+            Console.WriteLine($"JSON data length: {Encoding.UTF8.GetBytes("{\"type\":\"object\",\"properties\":{\"data\":{\"type\":\"string\"}}}").Length}");
         }
     }
 }

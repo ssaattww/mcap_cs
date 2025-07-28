@@ -4,10 +4,14 @@ from mcap.records import Channel, Schema, Message
 
 # MCAPファイルをバイナリ読み込みモードで開きます
 # C#アプリケーションが生成したoutput.mcapを読み込みます
-with open("output.mcap", "rb") as f:
+with open("csharp/McapFileVerificationApp/output.mcap", "rb") as f:
     # MCAPリーダーを作成します
     reader = make_reader(f)
     
+    # ヘッダー情報を表示します
+    print(f"MCAP Header Library: {reader.header.library}")
+    print(f"MCAP Header Profile: {reader.header.profile}")
+
     # すべてのメッセージを反復処理します
     for schema, channel, message in reader.iter_messages():
         print(f"Channel: {channel.topic} (ID: {channel.id})")
