@@ -1,3 +1,4 @@
+
 using McapCs.Record;
 using McapCs.Writer;
 
@@ -19,8 +20,10 @@ public class DataEndTests
         var expectedStream = new MemoryStream();
         var expectedWriter = new BinaryWriter(expectedStream);
         expectedWriter.Write((byte)EOpCode.DataEnd);
-        expectedWriter.Write(4UL); // recordSize is 4 bytes
-        expectedWriter.Write((uint)0x12345678);
+        // recordSize: data_section_crc (4 bytes)
+        ulong recordSize = 4UL;
+        expectedWriter.Write(recordSize);
+        expectedWriter.Write((uint)0x12345678); // dataSectionCrc
         var expectedBytes = expectedStream.ToArray();
 
         // Act

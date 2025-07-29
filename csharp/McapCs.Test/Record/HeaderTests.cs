@@ -1,3 +1,4 @@
+
 using McapCs.Record;
 using McapCs.Writer;
 using System.Text;
@@ -24,6 +25,7 @@ public class HeaderTests
         var expectedStream = new MemoryStream();
         var expectedWriter = new BinaryWriter(expectedStream);
         expectedWriter.Write((byte)EOpCode.Header);
+        // recordSize: profile length (4 bytes) + profile string size + library length (4 bytes) + library string size
         ulong recordSize = 4UL + (ulong)Encoding.UTF8.GetByteCount(PROFILE) + 4UL + (ulong)Encoding.UTF8.GetByteCount(LIBRARY);
         expectedWriter.Write(recordSize);
         expectedWriter.Write((uint)Encoding.UTF8.GetByteCount(PROFILE));

@@ -1,4 +1,3 @@
-
 using McapCs.Record;
 using McapCs.Writer;
 
@@ -22,11 +21,12 @@ public class SummaryOffsetTests
         var expectedStream = new MemoryStream();
         var expectedWriter = new BinaryWriter(expectedStream);
         expectedWriter.Write((byte)EOpCode.SummaryOffset);
-        ulong recordSize = (ulong)(1UL + 8UL + 8UL);
+        // recordSize: group_opcode (1 byte) + group_start (8 bytes) + group_length (8 bytes)
+        ulong recordSize = 1UL + 8UL + 8UL;
         expectedWriter.Write(recordSize);
-        expectedWriter.Write((byte)EOpCode.Chunk);
-        expectedWriter.Write((ulong)100);
-        expectedWriter.Write((ulong)200);
+        expectedWriter.Write((byte)EOpCode.Chunk); // groupOpCode
+        expectedWriter.Write((ulong)100); // groupStart
+        expectedWriter.Write((ulong)200); // groupLength
         var expectedBytes = expectedStream.ToArray();
 
         // Act

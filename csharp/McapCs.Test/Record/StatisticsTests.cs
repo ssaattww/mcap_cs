@@ -39,13 +39,11 @@ public class StatisticsTests
         var expectedWriter = new BinaryWriter(expectedStream);
         expectedWriter.Write((byte)EOpCode.Statistics);
 
-        // Manually calculate channelMessageCountsSize
-        ulong channelMessageCountsSize = (
-            2UL + 8UL + // CHANNEL_ID_1 + MESSAGE_COUNT_1
-            2UL + 8UL   // CHANNEL_ID_2 + MESSAGE_COUNT_2
-        );
+        // Manually calculate channelMessageCountsSize: number of channel message counts * (channelId (2 bytes) + messageCount (8 bytes))
+        ulong channelMessageCountsSize = 2UL * (2UL + 8UL);
 
-        ulong recordSize = (
+        // recordSize: message_count (8 bytes) + schema_count (2 bytes) + channel_count (4 bytes) + attachment_count (4 bytes) + metadata_count (4 bytes) + chunk_count (4 bytes) + message_start_time (8 bytes) + message_end_time (8 bytes) + channel_message_counts length (4 bytes) + channel_message_counts bytes size
+        ulong recordSize = 
             8UL + // messageCount
             2UL + // schemaCount
             4UL + // channelCount
@@ -54,24 +52,23 @@ public class StatisticsTests
             4UL + // chunkCount
             8UL + // messageStartTime
             8UL + // messageEndTime
-            4UL + channelMessageCountsSize // channelMessageCounts length + data
-        );
+            4UL + channelMessageCountsSize; // channelMessageCounts length + data
         expectedWriter.Write(recordSize);
-        expectedWriter.Write((ulong)100);
-        expectedWriter.Write((ushort)5);
-        expectedWriter.Write((uint)10);
-        expectedWriter.Write((uint)2);
-        expectedWriter.Write((uint)3);
-        expectedWriter.Write((uint)4);
-        expectedWriter.Write((ulong)1000);
-        expectedWriter.Write((ulong)2000);
-        expectedWriter.Write((uint)channelMessageCountsSize);
+        expectedWriter.Write((ulong)100); // messageCount
+        expectedWriter.Write((ushort)5); // schemaCount
+        expectedWriter.Write((uint)10); // channelCount
+        expectedWriter.Write((uint)2); // attachmentCount
+        expectedWriter.Write((uint)3); // metadataCount
+        expectedWriter.Write((uint)4); // chunkCount
+        expectedWriter.Write((ulong)1000); // messageStartTime
+        expectedWriter.Write((ulong)2000); // messageEndTime
+        expectedWriter.Write((uint)channelMessageCountsSize); // channelMessageCounts length
         // Manually write sorted channelMessageCounts
         // Note: The order is by key in MCAP spec
-        expectedWriter.Write(CHANNEL_ID_1);
-        expectedWriter.Write(MESSAGE_COUNT_1);
-        expectedWriter.Write(CHANNEL_ID_2);
-        expectedWriter.Write(MESSAGE_COUNT_2);
+        expectedWriter.Write(CHANNEL_ID_1); // channelId
+        expectedWriter.Write(MESSAGE_COUNT_1); // messageCount
+        expectedWriter.Write(CHANNEL_ID_2); // channelId
+        expectedWriter.Write(MESSAGE_COUNT_2); // messageCount
         var expectedBytes = expectedStream.ToArray();
 
         // Act

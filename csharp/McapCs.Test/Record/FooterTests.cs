@@ -1,3 +1,4 @@
+
 using McapCs.Record;
 using McapCs.Writer;
 
@@ -20,9 +21,11 @@ public class FooterTests
         var expectedStream = new MemoryStream();
         var expectedWriter = new BinaryWriter(expectedStream);
         expectedWriter.Write((byte)EOpCode.Footer);
-        expectedWriter.Write(20UL); // recordSize is 20 bytes (8 + 8 + 4)
-        expectedWriter.Write((ulong)12345);
-        expectedWriter.Write((ulong)67890);
+        // recordSize: summary_start (8 bytes) + summary_offset_start (8 bytes) + summary_crc (4 bytes)
+        ulong recordSize = 8UL + 8UL + 4UL;
+        expectedWriter.Write(recordSize);
+        expectedWriter.Write((ulong)12345); // summary_start
+        expectedWriter.Write((ulong)67890); // summary_offset_start
         expectedWriter.Write((uint)0); // CRC is calculated by the writer
         var expectedBytes = expectedStream.ToArray();
 

@@ -14,6 +14,7 @@ public class AttachmentTests
         const int DATA_SIZE = 5;
         const string ATTACHMENT_NAME = "test_attachment";
         const string MEDIA_TYPE = "text/plain";
+        byte[] DATA = new byte[] { 1, 2, 3, 4, 5 };
 
         var stream = new MemoryStream();
         var writable = new McapCs.Writer.StreamWriter(stream);
@@ -23,8 +24,8 @@ public class AttachmentTests
             createTime = 67890,
             name = ATTACHMENT_NAME,
             mediaType = MEDIA_TYPE,
-            data = new List<byte>(new byte[] { 1, 2, 3, 4, 5 }),
-            dataSize = DATA_SIZE,
+            data = new List<byte>(DATA),
+            dataSize = (ulong)DATA_SIZE,
             crc = 0x12345678
         };
 
@@ -32,15 +33,19 @@ public class AttachmentTests
         var expectedWriter = new BinaryWriter(expectedStream);
         expectedWriter.Write((byte)EOpCode.Attachment);
 
-        // Calculate recordSize using hardcoded string byte counts
+        // Calculate recordSize:
+        // logTime (8 bytes) + createTime (8 bytes) +
+        // name length (4 bytes) + name string size +
+        // mediaType length (4 bytes) + mediaType string size +
+        // dataSize (8 bytes) + data bytes size + crc (4 bytes)
         ulong recordSize = (
-            8UL + // logTime
-            8UL + // createTime
-            4UL + (ulong)Encoding.UTF8.GetByteCount(ATTACHMENT_NAME) + // name length + name data
-            4UL + (ulong)Encoding.UTF8.GetByteCount(MEDIA_TYPE) +     // mediaType length + mediaType data
-            8UL + // dataSize
-            (ulong)DATA_SIZE + // data bytes
-            4UL   // crc
+            8UL + 
+            8UL + 
+            4UL + (ulong)Encoding.UTF8.GetByteCount(ATTACHMENT_NAME) + 
+            4UL + (ulong)Encoding.UTF8.GetByteCount(MEDIA_TYPE) +     
+            8UL + 
+            (ulong)DATA_SIZE + 
+            4UL   
         );
         expectedWriter.Write(recordSize);
         expectedWriter.Write((ulong)12345); // logTime
@@ -50,7 +55,7 @@ public class AttachmentTests
         expectedWriter.Write((uint)Encoding.UTF8.GetByteCount(MEDIA_TYPE)); // mediaType length
         expectedWriter.Write(Encoding.UTF8.GetBytes(MEDIA_TYPE)); // mediaType data
         expectedWriter.Write((ulong)DATA_SIZE); // dataSize
-        expectedWriter.Write(attachment.data.ToArray()); // data bytes
+        expectedWriter.Write(DATA); // data bytes
         expectedWriter.Write((uint)0x12345678); // crc
         var expectedBytes = expectedStream.ToArray();
 

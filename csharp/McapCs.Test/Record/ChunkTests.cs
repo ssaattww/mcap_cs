@@ -30,16 +30,17 @@ public class ChunkTests
         var expectedStream = new MemoryStream();
         var expectedWriter = new BinaryWriter(expectedStream);
         expectedWriter.Write((byte)EOpCode.Chunk);
+        // recordSize: messageStartTime (8 bytes) + messageEndTime (8 bytes) + uncompressedSize (8 bytes) + uncompressedCrc (4 bytes) + compression length (4 bytes) + compression string size + compressedSize (8 bytes) + records bytes size
         ulong recordSize = 8UL + 8UL + 8UL + 4UL + 4UL + (ulong)Encoding.UTF8.GetByteCount(COMPRESSION) + 8UL + (ulong)RECORDS_SIZE;
         expectedWriter.Write(recordSize);
-        expectedWriter.Write((ulong)100);
-        expectedWriter.Write((ulong)200);
-        expectedWriter.Write((ulong)1024);
-        expectedWriter.Write((uint)0x12345678);
-        expectedWriter.Write((uint)Encoding.UTF8.GetByteCount(COMPRESSION));
-        expectedWriter.Write(Encoding.UTF8.GetBytes(COMPRESSION));
-        expectedWriter.Write((ulong)RECORDS_SIZE);
-        expectedWriter.Write(RECORDS);
+        expectedWriter.Write((ulong)100); // messageStartTime
+        expectedWriter.Write((ulong)200); // messageEndTime
+        expectedWriter.Write((ulong)1024); // uncompressedSize
+        expectedWriter.Write((uint)0x12345678); // uncompressedCrc
+        expectedWriter.Write((uint)Encoding.UTF8.GetByteCount(COMPRESSION)); // compression length
+        expectedWriter.Write(Encoding.UTF8.GetBytes(COMPRESSION)); // compression string
+        expectedWriter.Write((ulong)RECORDS_SIZE); // compressedSize (Note: this is actually records size in this test)
+        expectedWriter.Write(RECORDS); // records bytes
         var expectedBytes = expectedStream.ToArray();
 
         // Act

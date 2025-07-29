@@ -33,17 +33,20 @@ public class MetadataTests
         var expectedWriter = new BinaryWriter(expectedStream);
         expectedWriter.Write((byte)EOpCode.Metadata);
 
-        // Manually calculate metadataSize based on hardcoded strings
-        ulong metadataContentSize = (ulong)(
-            4 + Encoding.UTF8.GetByteCount(KEY1) + 4 + Encoding.UTF8.GetByteCount(VALUE1) +
-            4 + Encoding.UTF8.GetByteCount(KEY2) + 4 + Encoding.UTF8.GetByteCount(VALUE2)
+        // Manually calculate metadataContentSize based on hardcoded strings
+        ulong metadataContentSize = (
+            4UL + (ulong)Encoding.UTF8.GetByteCount(KEY1) + 4UL + (ulong)Encoding.UTF8.GetByteCount(VALUE1) +
+            4UL + (ulong)Encoding.UTF8.GetByteCount(KEY2) + 4UL + (ulong)Encoding.UTF8.GetByteCount(VALUE2)
         );
 
-        ulong recordSize = 4UL + (ulong)Encoding.UTF8.GetByteCount(METADATA_NAME) + 4UL + metadataContentSize;
+        ulong recordSize = (
+            4UL + (ulong)Encoding.UTF8.GetByteCount(METADATA_NAME) + // name length + name data
+            4UL + metadataContentSize // metadata length + metadata data
+        );
         expectedWriter.Write(recordSize);
-        expectedWriter.Write((uint)Encoding.UTF8.GetByteCount(METADATA_NAME));
-        expectedWriter.Write(Encoding.UTF8.GetBytes(METADATA_NAME));
-        expectedWriter.Write((uint)metadataContentSize);
+        expectedWriter.Write((uint)Encoding.UTF8.GetByteCount(METADATA_NAME)); // name length
+        expectedWriter.Write(Encoding.UTF8.GetBytes(METADATA_NAME)); // name data
+        expectedWriter.Write((uint)metadataContentSize); // metadata length
         // Manually write sorted metadata
         // Note: The order of metadata is lexicographical by key in MCAP spec
         expectedWriter.Write((uint)Encoding.UTF8.GetByteCount(KEY1));
