@@ -53,18 +53,20 @@ public class McapReader : IDisposable
 
   public void Dispose() => Close();
 
+  // 先頭マジック（8バイト）を検証する
   private static void ReadMagic(BinaryReader reader)
   {
-    var magic = reader.ReadBytes(Constants.Magic.Length);
-    if (magic.Length != Constants.Magic.Length)
+    var expected = Constants.Magic;
+    var magic = reader.ReadBytes(expected.Length);
+    if (magic.Length != expected.Length)
     {
-      throw new InvalidDataException("MCAP: failed to read magic header");
+      throw new InvalidDataException("MCAP: 先頭マジックの読み取りに失敗しました");
     }
-    for (int i = 0; i < magic.Length; i++)
+    for (int i = 0; i < expected.Length; i++)
     {
-      if (magic[i] != Constants.Magic[i])
+      if (magic[i] != expected[i])
       {
-        throw new InvalidDataException("MCAP: invalid magic header");
+        throw new InvalidDataException("MCAP: 先頭マジックが一致しません");
       }
     }
   }
@@ -80,6 +82,26 @@ public class McapReader : IDisposable
         if (readSoFar >= lengthLimit) break;
       }
       if (reader.BaseStream.Position >= reader.BaseStream.Length) break;
+
+      // 残りが 8 バイト（マジック長）であれば末尾マジックの可能性を検査
+      long remaining = reader.BaseStream.Length - reader.BaseStream.Position;
+      if (remaining == Constants.Magic.Length)
+      {
+        long pos = reader.BaseStream.Position;
+        var peek = reader.ReadBytes(Constants.Magic.Length);
+        bool isMagic = true;
+        for (int i = 0; i < Constants.Magic.Length; i++)
+        {
+          if (peek[i] != Constants.Magic[i]) { isMagic = false; break; }
+        }
+        if (isMagic)
+        {
+          // 末尾マジックを消費して終了
+          break;
+        }
+        // Not magic; rewind and continue parsing
+        reader.BaseStream.Seek(pos, SeekOrigin.Begin);
+      }
 
       int op = reader.Read();
       if (op == -1) break;
@@ -127,24 +149,30 @@ public class McapReader : IDisposable
           msg.sequence = reader.ReadUInt32();
           msg.logTime = reader.ReadUInt64();
           msg.publishTime = reader.ReadUInt64();
-          uint dataLen = reader.ReadUInt32();
-          var payload = reader.ReadBytes((int)dataLen);
+          // Message のデータ部は「レコード長 - 固定22バイト（channelId/sequence/logTime/publishTime）」
+          long fixedBytes = 2 + 4 + 8 + 8; // 22 bytes
+          long msgRemaining = (long)dataSize - fixedBytes;
+          if (msgRemaining < 0)
+          {
+            throw new InvalidDataException("MCAP: Message レコード長が不正です");
+          }
+          var payload = reader.ReadBytes((int)msgRemaining);
           msg.data = new List<byte>(payload);
-          msg.dataSize = dataLen;
+          msg.dataSize = (ulong)payload.Length;
           Messages.Add(msg);
           break;
         }
 
         case EOpCode.Chunk:
         {
-          // Read chunk header
+          // Chunk ヘッダーを読み取り（現状は非圧縮のみ対応）
           ulong messageStartTime = reader.ReadUInt64();
           ulong messageEndTime = reader.ReadUInt64();
           ulong uncompressedSize = reader.ReadUInt64();
           uint uncompressedCrc = reader.ReadUInt32();
           string compression = ReadString(reader);
           ulong compressedSize = reader.ReadUInt64();
-          // Only support non-compressed chunks for now
+          // 圧縮チャンクは未対応（将来対応予定）
           if (!string.IsNullOrEmpty(compression) && !compression.Equals("none", StringComparison.OrdinalIgnoreCase))
           {
             throw new NotSupportedException($"MCAP: compressed chunk '{compression}' is not supported");
@@ -220,4 +248,3 @@ public class McapReader : IDisposable
     return map;
   }
 }
-

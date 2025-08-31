@@ -56,15 +56,14 @@ public class McapReaderTests
             WriteString(bw, encoding);
             bw.Write((uint)mdSize);
 
-            // Message
+            // Message（仕様準拠: データ長フィールドは書かない）
             bw.Write((byte)EOpCode.Message);
-            ulong msgSize = 2 + 4 + 8 + 8 + 4 + (ulong)payload.Length;
+            ulong msgSize = 2 + 4 + 8 + 8 + (ulong)payload.Length;
             bw.Write(msgSize);
             bw.Write((ushort)1);
             bw.Write((uint)42);
             bw.Write((ulong)100);
             bw.Write((ulong)100);
-            bw.Write((uint)payload.Length);
             bw.Write(payload);
 
             // Footer（最小）

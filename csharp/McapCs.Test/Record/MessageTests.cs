@@ -26,15 +26,14 @@ public class MessageTests
         var expectedStream = new MemoryStream();
         var expectedWriter = new BinaryWriter(expectedStream);
         expectedWriter.Write((byte)EOpCode.Message);
-        // recordSize: channelId (2 bytes) + sequence (4 bytes) + logTime (8 bytes) + publishTime (8 bytes) + data length (4 bytes) + data bytes size
-        ulong recordSize = 2UL + 4UL + 8UL + 8UL + 4UL + (ulong)DATA_SIZE;
+        // recordSize: channelId (2 bytes) + sequence (4 bytes) + logTime (8 bytes) + publishTime (8 bytes) + data bytes size
+        ulong recordSize = 2UL + 4UL + 8UL + 8UL + (ulong)DATA_SIZE;
         expectedWriter.Write(recordSize);
         expectedWriter.Write((ushort)1); // channelId
         expectedWriter.Write((uint)2); // sequence
         expectedWriter.Write((ulong)1234567890); // logTime
         expectedWriter.Write((ulong)9876543210); // publishTime
-        expectedWriter.Write((uint)DATA_SIZE); // data length
-        expectedWriter.Write(DATA); // data bytes
+        expectedWriter.Write(DATA); // data bytes（データ長は書かない仕様）
         var expectedBytes = expectedStream.ToArray();
 
         // Act

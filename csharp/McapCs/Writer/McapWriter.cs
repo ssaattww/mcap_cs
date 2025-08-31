@@ -699,9 +699,9 @@ public class McapWriter : IDisposable {
   }
   public static ulong GetRecordSize(Message message)
   {
-    // recordSize: channelId (2 bytes) + sequence (4 bytes) + logTime (8 bytes) + publishTime (8 bytes) + dataSize (8 bytes)
-    // recordSize: チャネルID (2バイト) + シーケンス (4バイト) + ログタイム (8バイト) + パブリッシュタイム (8バイト) + データサイズ (8バイト)
-    return 2 + 4 + 8 + 8 + 4 + (ulong)message.data.Count;
+    // recordSize: channelId (2 bytes) + sequence (4 bytes) + logTime (8 bytes) + publishTime (8 bytes) + data bytes size
+    // recordSize: チャネルID (2バイト) + シーケンス (4バイト) + ログタイム (8バイト) + パブリッシュタイム (8バイト) + データバイトサイズ
+    return 2 + 4 + 8 + 8 + (ulong)message.data.Count;
   }
   public static ulong Write(Writable output, Message message)
   {
@@ -713,7 +713,7 @@ public class McapWriter : IDisposable {
     Write(output, message.sequence);
     Write(output, message.logTime);
     Write(output, message.publishTime);
-    Write(output, (uint)message.data.Count);
+    // 仕様準拠: データ長の4バイトは出力せず、残り全体をデータとして書き込む
     output.Write(message.data.ToArray());
 
     // 9: OpCode (1 byte) + Record Length (8 bytes)
