@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Generate an uncompressed MCAP file compatible with the current C# McapReader.
+このスクリプトは、現在の C# McapReader で読み取り可能な「非圧縮」の MCAP ファイルを生成します。
 
-Usage:
-  PYTHONPATH=python/mcap python3 csharp/McapFileVerificationApp/gen_uncompressed_mcap.py output.mcap
+使い方:
+  PYTHONPATH=python/mcap python3 csharp/McapFileVerificationApp/gen_uncompressed_mcap.py 出力先.mcap
 
-This script intentionally does not modify or depend on python/examples/raw/writer.py.
-It uses the mcap Writer directly with CompressionType.NONE.
+注意:
+- python/examples/raw/writer.py を変更せず、直接 mcap の Writer を CompressionType.NONE で使用します。
 """
 import json
 import sys
@@ -15,13 +15,13 @@ from time import time_ns
 try:
     from mcap.writer import Writer, CompressionType
 except Exception as e:
-    print("Failed to import mcap.writer. Ensure PYTHONPATH includes 'python/mcap' (repo root).", file=sys.stderr)
+    print("mcap.writer のインポートに失敗しました。PYTHONPATH に 'python/mcap'（リポジトリルート配下）を含めてください。", file=sys.stderr)
     raise
 
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print("Usage: gen_uncompressed_mcap.py <output.mcap>")
+        print("使い方: gen_uncompressed_mcap.py <出力先.mcap>")
         return 2
     out = sys.argv[1]
     with open(out, "wb") as f:
@@ -47,10 +47,9 @@ def main() -> int:
             data=json.dumps({"sample": "test"}).encode("utf-8"),
         )
         w.finish()
-    print(f"Wrote {out}")
+    print(f"出力しました: {out}")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
