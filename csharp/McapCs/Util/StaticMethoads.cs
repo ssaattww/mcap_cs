@@ -10,7 +10,7 @@ public static class StaticMethoads
             size += 4; // Size of key length (uint32)
             size += (ulong)entry.Key.Length; // Size of key string bytes
             size += 4; // Size of value length (uint32)
-            size += (ulong)entry.Value.Length; // Size of value string bytes
+            size += (ulong)System.Text.Encoding.UTF8.GetByteCount(entry.Value); // Size of value string bytes
         }
         return size;
     }

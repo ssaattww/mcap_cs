@@ -48,6 +48,9 @@ public class FileWriter : Writable, IDisposable
       throw new InvalidOperationException("FileWriter is not open.");
     }
     var size = (ulong)data.Length;
+#if DEBUG
+    Console.WriteLine($"Writing {size} bytes to file.");
+#endif
     _writer.Write(data, 0, (int)size);
     _size += size;
   }
