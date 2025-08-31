@@ -1,0 +1,28 @@
+# Completion Checklist
+
+- Code formatted and linted
+  - TypeScript: `yarn prettier:check` (and fix if needed), package ESLint where applicable
+  - Python: `make -C python lint`
+  - Go: `make -C go lint`
+  - Swift: `swiftformat .` and `swiftlint --fix`
+  - C++: `make -C cpp format-check`
+  - C#: `dotnet format` (if used)
+- Unit tests pass for affected languages
+  - TypeScript: `yarn typescript:test`
+  - Python: `make -C python test`
+  - Go: `make -C go test`
+  - Rust: `pushd rust && cargo test`
+  - Swift: `pushd swift && swift test`
+  - C++: build/test via `make -C cpp` or host targets
+  - C#: `dotnet test csharp/McapCs.sln -c Release`
+- Conformance tests as needed (format/IO changes)
+  - Ensure LFS data: `git lfs install && git lfs fetch`
+  - Run: `yarn test:conformance`
+- Docs and examples updated if behavior changes (website or per-language READMEs)
+- Commit and PR hygiene
+  - Conventional commit message with issue reference (e.g., `feat: ... #123`)
+  - Branch `feature/<task>` from `develop`; open PR into `develop`
+  - Include rationale and verification steps/logs/screens; ensure CI passes
+- Security & hygiene
+  - No secrets committed; large artifacts in Git LFS
+  - Tests avoid network and rely on local fixtures

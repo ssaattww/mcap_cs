@@ -1,0 +1,24 @@
+# Project Overview
+
+- Purpose: MCAP is a modular container file format and multi-language libraries for recording and reading pub/sub messages (serialization-agnostic), designed for robotics and similar workloads. This repo hosts implementations, docs, and conformance tests.
+- Tech stack:
+  - TypeScript/JavaScript: Yarn 4 workspaces for `@mcap/*` packages and a Docusaurus website.
+  - Python: Multiple packages (core + ROS/protobuf support) managed with Pipenv and Makefile tasks.
+  - Go: Multiple modules with Makefile orchestration (lint/test/bench).
+  - Rust: Single crate `mcap` with examples/tests/benches (Cargo).
+  - C++: Docker-based build/test flow with Conan via Makefile.
+  - Swift: Swift Package (`Package.swift`) with targets/tests and docc plugin.
+  - C#: .NET solution with library + tests (solution at `csharp/McapCs.sln`).
+- Repo structure:
+  - Language dirs: `cpp/`, `go/`, `python/`, `rust/`, `swift/`, `csharp/`, `typescript/`.
+  - Docs/site: `website/` (Docusaurus).
+  - Conformance tests: `tests/conformance/` (data via Git LFS in `tests/conformance/data/`).
+  - Shared fixtures: `testdata/`.
+  - Root tooling: `package.json` (Yarn workspaces + scripts), `.prettierrc.yml`, `cspell.config.yaml`.
+- Testing:
+  - Per-language unit tests under each language folder.
+  - Cross-language conformance suite in `tests/conformance/` (requires Git LFS data).
+- Entrypoints:
+  - TS packages under Yarn workspaces; website app in `website/`.
+  - C# solution at `csharp/McapCs.sln`.
+- Platform: Linux development environment assumed.
