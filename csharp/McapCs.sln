@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "McapCs", "McapCs\McapCs.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "McapCs.Test", "McapCs.Test\McapCs.Test.csproj", "{BA2F85E8-3780-456C-9018-872CF58336A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "McapFileVerificationApp", "McapFileVerificationApp\McapFileVerificationApp.csproj", "{EF5AD887-E4F7-4F9A-9931-6D9305702BB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{BA2F85E8-3780-456C-9018-872CF58336A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA2F85E8-3780-456C-9018-872CF58336A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA2F85E8-3780-456C-9018-872CF58336A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF5AD887-E4F7-4F9A-9931-6D9305702BB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF5AD887-E4F7-4F9A-9931-6D9305702BB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF5AD887-E4F7-4F9A-9931-6D9305702BB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF5AD887-E4F7-4F9A-9931-6D9305702BB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
