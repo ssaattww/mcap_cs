@@ -1026,6 +1026,12 @@ public class McapWriter : IDisposable {
 
   }
 
+  /// <summary>
+  /// Returns the current write target depending on chunking/compression settings.
+  /// チャンク/圧縮設定に応じた現在の書き込み先を返します。
+  /// </summary>
+  /// <returns>Writable sink for record emission. レコード出力先。</returns>
+  /// <exception cref="InvalidOperationException">Writer is not open, or chunk buffer missing. ライター未オープン、またはチャンクバッファ未初期化。</exception>
   private Writable GetOutput()
   {
     if (output_ == null)
@@ -1071,6 +1077,12 @@ public class McapWriter : IDisposable {
   // 圧縮の有無に関わらず、レコードは一旦非圧縮バッファ（BufferWriter）に蓄積し、
   // チャンクを閉じる段階（WriteChunk）で実際の圧縮（lz4/zstd）を行います。
   // こうすることで「サイズ閾値・圧縮率」の判定後に、圧縮の採否を決められます。
+  /// <summary>
+  /// Returns the accumulation writer for the current chunk.
+  /// 現在のチャンク用の蓄積ライター（非圧縮バッファ）を返します。
+  /// </summary>
+  /// <returns>Chunk writer used to buffer records. レコード蓄積用チャンクライター。</returns>
+  /// <exception cref="InvalidOperationException">Chunking is disabled or buffer missing. チャンク無効またはバッファ未初期化。</exception>
   private ChunkWriter GetChunkWriter()
   {
     if (chunkSize_ == 0)
@@ -1283,6 +1295,12 @@ public class McapWriter : IDisposable {
     // チャンクライターをリセットします
     chunkData.Clear();
   }
+  /// <summary>
+  /// Maps <see cref="CompressionLevel"/> to LZ4 level.
+  /// <see cref="CompressionLevel"/> を LZ4 のレベルに対応付けます。
+  /// </summary>
+  /// <param name="level">Requested compression level. 要求レベル。</param>
+  /// <returns>LZ4 level enum. LZ4 レベル。</returns>
   private static K4os.Compression.LZ4.LZ4Level MapLz4Level(CompressionLevel level)
   {
     return level switch
@@ -1296,6 +1314,12 @@ public class McapWriter : IDisposable {
     };
   }
 
+  /// <summary>
+  /// Maps <see cref="CompressionLevel"/> to Zstd numeric level.
+  /// <see cref="CompressionLevel"/> を Zstd の数値レベルに対応付けます。
+  /// </summary>
+  /// <param name="level">Requested compression level. 要求レベル。</param>
+  /// <returns>Zstd level as integer. Zstd レベル（整数）。</returns>
   private static int MapZstdLevel(CompressionLevel level)
   {
     return level switch

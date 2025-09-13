@@ -79,7 +79,11 @@ public class McapReader : IDisposable
   /// <summary>Disposes the reader. リーダーを破棄します。</summary>
   public void Dispose() => Close();
 
-  // 先頭マジック（8バイト）を検証する
+  /// <summary>
+  /// Validates and consumes the leading magic bytes.
+  /// 先頭マジック（8バイト）を検証して読み進めます。
+  /// </summary>
+  /// <param name="reader">Source reader. 入力リーダー。</param>
   private static void ReadMagic(BinaryReader reader)
   {
     var expected = Constants.Magic;
@@ -97,6 +101,12 @@ public class McapReader : IDisposable
     }
   }
 
+  /// <summary>
+  /// Reads records until the given length limit or end of stream.
+  /// 指定された長さ上限またはストリーム終端までレコードを読み込みます。
+  /// </summary>
+  /// <param name="reader">Record reader. レコード読み取り用リーダー。</param>
+  /// <param name="lengthLimit">Maximum number of bytes to read; -1 for no limit. 読み取り上限（-1 で無制限）。</param>
   private void ReadRecords(BinaryReader reader, long lengthLimit)
   {
     long startPos = reader.BaseStream.Position;
@@ -242,6 +252,12 @@ public class McapReader : IDisposable
     }
   }
 
+  /// <summary>
+  /// Reads a length-prefixed UTF-8 string.
+  /// 長さ付き（UInt32）UTF-8 文字列を読み込みます。
+  /// </summary>
+  /// <param name="reader">Source reader. 入力リーダー。</param>
+  /// <returns>Decoded string. 文字列。</returns>
   private static string ReadString(BinaryReader reader)
   {
     uint len = reader.ReadUInt32();
@@ -250,6 +266,12 @@ public class McapReader : IDisposable
     return Encoding.UTF8.GetString(bytes);
   }
 
+  /// <summary>
+  /// Reads a length-prefixed byte array.
+  /// 長さ付き（UInt32）バイト列を読み込みます。
+  /// </summary>
+  /// <param name="reader">Source reader. 入力リーダー。</param>
+  /// <returns>Byte array (may be empty). バイト配列（空の可能性あり）。</returns>
   private static byte[] ReadBytesWithLength(BinaryReader reader)
   {
     uint len = reader.ReadUInt32();
@@ -257,6 +279,13 @@ public class McapReader : IDisposable
     return reader.ReadBytes((int)len);
   }
 
+  /// <summary>
+  /// Reads a map encoded as length-prefixed key/value string pairs within the given total size.
+  /// 指定サイズ内にエンコードされた長さ付きキー/値（文字列）ペアのマップを読み込みます。
+  /// </summary>
+  /// <param name="reader">Source reader. 入力リーダー。</param>
+  /// <param name="totalSize">Total size of the encoded map payload. マップのエンコード領域の総サイズ。</param>
+  /// <returns>Dictionary of key/value pairs. キー/値のディクショナリ。</returns>
   private static Dictionary<string, string> ReadKeyValueMap(BinaryReader reader, uint totalSize)
   {
     var map = new Dictionary<string, string>();
