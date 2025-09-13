@@ -1,8 +1,8 @@
-/**
- * @brief A generic Type-Length-Value record using a uint8 type and uint64
- * length. This is the generic form of all MCAP records.
- */
 namespace McapCs.Record;
+/// <summary>
+/// Generic TLV record (uint8 type, uint64 length) used by all MCAP records.
+/// すべての MCAP レコードの汎用 TLV 形式。
+/// </summary>
 public struct Record
 {
   public EOpCode opcode;

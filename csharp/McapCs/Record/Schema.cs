@@ -1,9 +1,8 @@
-/**
- * @brief Describes a schema used for message encoding and decoding and/or
- * describing the shape of messages. One or more Channel records map to a single
- * Schema.
- */
 namespace McapCs.Record;
+/// <summary>
+/// Schema used for encoding/decoding or describing message shape.
+/// メッセージのエンコード/デコードや形状記述のためのスキーマ。
+/// </summary>
 public struct Schema {
   public ushort id;
   public string name;

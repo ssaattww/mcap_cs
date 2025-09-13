@@ -1,8 +1,8 @@
-/**
- * @brief A single Message published to a Channel.
- */
-
 namespace McapCs.Record;
+/// <summary>
+/// A single message published to a channel.
+/// チャネルに発行された 1 件のメッセージ。
+/// </summary>
 public struct Message
 {
   public ushort channelId;

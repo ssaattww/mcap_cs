@@ -1,6 +1,10 @@
 namespace McapCs.Writer;
 using McapCs.Types;
 
+/// <summary>
+/// Options controlling how MCAP files are written.
+/// MCAP 書き込みのためのオプション群。
+/// </summary>
 public class McapWriterOptions
 {
   /**
@@ -70,11 +74,19 @@ public class McapWriterOptions
    * https://mcap.dev/spec/registry#well-known-profiles
    * for more information on well-known profiles.
    */
+  /// <summary>
+  /// Recording profile (see mcap.dev well-known profiles).
+  /// 記録プロファイル。
+  /// </summary>
   public string Profile { get; private set; }
   /**
    * @brief A freeform string written by recording libraries. For this library,
    * the default is "libmcap {Major}.{Minor}.{Patch}".
    */
+  /// <summary>
+  /// Freeform library string written into the header.
+  /// ヘッダに記録されるライブラリ表記文字列。
+  /// </summary>
   public string Library { get; set; } = $"libmcap {Constants.MCAP_LIBRARY_VERSION}";
 
   // The following options are less commonly used, providing more fine-grained
@@ -88,6 +100,12 @@ public class McapWriterOptions
   public bool noStatistics = false;
   public bool noSummaryOffsets = false;
 
+  /// <summary>
+  /// Creates a new instance.
+  /// 新しいインスタンスを作成します。
+  /// </summary>
+  /// <param name="profile">Recording profile. 記録プロファイル。</param>
+  /// <param name="library">Library string. ライブラリ表記。</param>
   public McapWriterOptions(string profile, string library)
   {
     Profile = profile;

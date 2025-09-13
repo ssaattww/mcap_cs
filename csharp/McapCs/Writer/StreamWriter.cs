@@ -56,6 +56,7 @@ public class StreamWriter : Writable, IDisposable
     _stream?.Dispose();
   }
 
+  /// <inheritdoc/>
   public override ulong Size
   {
     get { return _size; }

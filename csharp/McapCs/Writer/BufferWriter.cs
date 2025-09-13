@@ -11,6 +11,7 @@ public class BufferWriter : ChunkWriter
     // No specific end logic for buffer writer
   }
 
+  /// <inheritdoc/>
   public override ulong Size
   {
     get
@@ -29,13 +30,17 @@ public class BufferWriter : ChunkWriter
     buffer.AddRange(data);
   }
 
+  /// <inheritdoc/>
   public override bool Empty
   {
     get { return buffer.Count == 0; }
   }
 
+  /// <inheritdoc/>
   public override ulong CompressedSize => Size;
+  /// <inheritdoc/>
   public override byte[] Data => buffer.ToArray();
+  /// <inheritdoc/>
   public override byte[] CompressedData => buffer.ToArray();
 
   protected override void HandleClear()

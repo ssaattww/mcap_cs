@@ -1,9 +1,9 @@
-/**
- * @brief Holds a named map of key/value strings containing arbitrary user data.
- * Metadata records are found in the Data section, outside of Chunks.
- */
 namespace McapCs.Record;
 
+/// <summary>
+/// Named map of key/value strings in Data section (outside chunks).
+/// データセクションにある名前付きメタデータ。
+/// </summary>
 public struct Metadata
 {
   public string name = string.Empty;

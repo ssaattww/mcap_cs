@@ -24,7 +24,15 @@ public enum StatusCode
 };
 
 public struct Status {
+  /// <summary>
+  /// Status code indicating the result.
+  /// ステータス結果コード。
+  /// </summary>
   public StatusCode Code { get;}
+  /// <summary>
+  /// Human-readable message for the status.
+  /// ステータスメッセージ。
+  /// </summary>
   public string Message {get;}
 
   public Status()
@@ -109,6 +117,10 @@ public struct Status {
     Code = code;
     Message = message;
   }
+  /// <summary>
+  /// True when <see cref="Code"/> equals <see cref="StatusCode.Success"/>.
+  /// 成功かどうか。
+  /// </summary>
   public bool Ok{
     get { return Code == StatusCode.Success; }
   }

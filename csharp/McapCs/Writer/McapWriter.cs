@@ -5,24 +5,19 @@ using System;
 
 namespace McapCs.Writer;
 
+/// <summary>
+/// MCAP file writer.
+/// MCAP ファイルを書き込むためのライタークラス。
+/// </summary>
 public class McapWriter : IDisposable {
 
-  /**
-   * @brief Open a new MCAP file for writing and Write the header.
-   * @brief 新しいMCAPファイルを書き込み用に開き、ヘッダーを書き込みます。
-   *
-   * If the Writer was already opened, this calls `close`() first to reset the state.
-   * Writer may be re-used after being reset via `close`() or `terminate`().
-   * 既にライターが開かれている場合、このメソッドは最初に `close`() を呼び出して状態をリセットします。
-   * ライターは `close`() または `terminate`() でリセットされた後、再利用できます。
-   *
-   * @param filename Filename of the MCAP file to Write.
-   * @param filename 書き込むMCAPファイルのファイル名。
-   * @param options Options for MCAP writing. `profile` is required.
-   * @param options MCAP書き込みのオプション。`profile` は必須です。
-   * @return A non-success status if the file could not be opened for writing.
-   * @return ファイルを書き込み用に開けなかった場合は非成功ステータス。
-   */
+  /// <summary>
+  /// Opens a new MCAP file and writes the header.
+  /// 既に開いている場合は状態をリセットし、ヘッダーを書き込みます。
+  /// </summary>
+  /// <param name="filename">Path to the MCAP file to write. 書き込み先ファイルパス。</param>
+  /// <param name="options">Writer options; <c>profile</c> is required. 書き込みオプション（<c>profile</c> 必須）。</param>
+  /// <returns>Non-success if the file could not be opened. 開けない場合は非成功ステータス。</returns>
   public Status Open(string filename, McapWriterOptions options)
   {
     // If the writer was opened, close it first
@@ -38,20 +33,13 @@ public class McapWriter : IDisposable {
     return new Status(StatusCode.Success);
   }
 
-  /**
-   * @brief Open a new MCAP file for writing and Write the header.
-   *
-   * If the Writer was already opened, this calls `close`() first to reset the state.
-   * A Writer may be re-used after being reset via `close`() or `terminate`().
-   *
-   * @param Writer An implementation of the Writable interface. Output bytes
-   *   will be written to this object.
-   * @param options Options for MCAP writing. `profile` is required.
-   */
-  // Writer を初期化してヘッダを書き込みます。
-  // 圧縮モード（LZ4/Zstd）であっても、書き込み中は非圧縮バッファに蓄積し、
-  // チャンクを閉じる際（WriteChunk）に実際の圧縮を行います。
-  // これにより、サイズ閾値や圧縮率に基づく「圧縮採否」の判断が可能になります。
+  /// <summary>
+  /// Initializes the writer over a <see cref="Writable"/> and writes the header.
+  /// 既存のオープン状態があればリセットして、ヘッダーを書き込みます。
+  /// </summary>
+  /// <param name="writer">Writable implementation to receive bytes. 出力先 Writable。</param>
+  /// <param name="options">Writer options; <c>profile</c> is required. 書き込みオプション（<c>profile</c> 必須）。</param>
+  // 圧縮モード（LZ4/Zstd）でも、蓄積は BufferWriter で行い、Close 時に圧縮決定します。
   public void Open(Writable writer, McapWriterOptions options)
   {
     // If the writer was opened, close it first
@@ -94,15 +82,12 @@ public class McapWriter : IDisposable {
     Write(writer, new Header { profile = options.Profile, library = Constants.MCAP_LIBRARY_VERSION });
   }
 
-  /**
-   * @brief Open a new MCAP file for writing and Write the header.
-   * @brief 新しいMCAPファイルを書き込み用に開き、ヘッダーを書き込みます。
-   *
-   * @param stream Output stream to Write to.
-   * @param stream 書き込み先の出力ストリーム。
-   * @param options Options for MCAP writing. `profile` is required。
-   * @param options MCAP書き込みのオプション。`profile` は必須です。
-   */
+  /// <summary>
+  /// Opens the writer on a <see cref="Stream"/> and writes the header.
+  /// ストリーム上でライターを開き、ヘッダーを書き込みます。
+  /// </summary>
+  /// <param name="stream">Destination stream. 出力ストリーム。</param>
+  /// <param name="options">Writer options. 書き込みオプション。</param>
   public void Open(Stream stream, McapWriterOptions options)
   {
     // If the writer was opened, close it first
@@ -111,11 +96,10 @@ public class McapWriter : IDisposable {
     Open(streamOutput_, options);
   }
 
-  /**
-   * @brief finishes the current chunk in progress and Writes it to the file, if a chunk
-   * is in progress.
-   * @brief 進行中の現在のチャンクを終了し、チャンクが進行中の場合はファイルに書き込みます。
-   */
+  /// <summary>
+  /// Finishes the current in-progress chunk and writes it, if any.
+  /// 進行中のチャンクがあれば閉じて書き込みます。
+  /// </summary>
   public void CloseLastChunk()
   {
     if (!opened_ || output_ == null)
@@ -130,11 +114,10 @@ public class McapWriter : IDisposable {
     }
   }
 
-  /**
-   * @brief Write the MCAP footer, flush pending Writes to the output stream,
-   * and reset internal state. The Writer may be re-used with another call to open afterwards.
-   * @brief MCAPフッターを書き込み、保留中の書き込みを出力ストリームにフラッシュし、内部状態をリセットします。ライターは、その後別のopen呼び出しで再利用できます。
-   */
+  /// <summary>
+  /// Writes the footer, flushes the stream, and resets internal state.
+  /// フッターを書き込み、フラッシュ後に内部状態をリセットします。
+  /// </summary>
   public void Close()
   {
     if (!opened_ || output_ == null)
@@ -299,12 +282,10 @@ public class McapWriter : IDisposable {
     Terminate();
   }
 
-  /**
-   * @brief Reset internal state without writing the MCAP footer or flushing
-   * pending Writes. This should only be used in error cases as the output MCAP
-   * file will be truncated. The Writer may be re-used with another call to open afterwards.
-   * @brief MCAPフッターを書き込んだり、保留中の書き込みをフラッシュしたりせずに内部状態をリセットします。これは、出力MCAPファイルが切り詰められるため、エラーケースでのみ使用してください。ライターは、その後別のopen呼び出しで再利用できます。
-   */
+  /// <summary>
+  /// Resets internal state without writing a footer or flushing.
+  /// エラー時などにフッターを書かずに状態のみリセットします。
+  /// </summary>
   public void Terminate()
   {
     output_ = null;
@@ -329,69 +310,43 @@ public class McapWriter : IDisposable {
     opened_ = false;
   }
 
+  /// <summary>
+  /// Disposes the writer, closing the file if open.
+  /// ライターを破棄し、必要に応じてクローズします。
+  /// </summary>
   public void Dispose()
   {
     Close();
   }
 
-  /**
-   * @brief Add a new schema to the MCAP file and set `schema.id` to a generated
-   * schema id. The schema id is used when adding channels to the file.
-   * @brief 新しいスキーマをMCAPファイルに追加し、`schema.id` を生成されたスキーマIDに設定します。スキーマIDは、チャネルをファイルに追加する際に使用されます。
-   *
-   * Schemas are not cleared when the state is reset via `close`() or `terminate`().
-   * If you're re-using a Writer for multiple files in a row, the schemas only need
-   * to be added once, before first use.
-   * スキーマは、`close`() または `terminate`() で状態がリセットされてもクリアされません。
-   * 複数のファイルを連続してライターを再利用する場合、スキーマは最初に使用する前に一度だけ追加すれば十分です。
-   *
-   * This method does not de-duplicate schemas.
-   * このメソッドはスキーマの重複排除を行いません。
-   *
-   * @param schema Description of the schema to register. The `id` field is
-   *   ignored and will be set to a generated schema id.
-   * @param schema 登録するスキーマの説明。`id` フィールドは無視され、生成されたスキーマIDに設定されます。
-   */
+  /// <summary>
+  /// Adds a new schema and assigns a generated <c>schema.id</c>.
+  /// スキーマを登録し、生成した <c>schema.id</c> を設定します。
+  /// </summary>
+  /// <param name="schema">Schema to register. 登録するスキーマ。</param>
   public void AddSchema(Schema schema)
   {
     schema.id = (ushort)(schemas_.Count + 1);
     schemas_.Add(schema);
   }
 
-  /**
-   * @brief Add a new channel to the MCAP file and set `channel.id` to a
-   * generated channel id. The channel id is used when adding messages to the
-   * file.
-   * @brief 新しいチャネルをMCAPファイルに追加し、`channel.id` を生成されたチャネルIDに設定します。チャネルIDは、メッセージをファイルに追加する際に使用されます。
-   *
-   * Channels are not cleared when the state is reset via `close`() or `terminate`().
-   * If you're re-using a Writer for multiple files in a row, the channels only need
-   * to be added once, before first use.
-   * チャネルは、`close`() または `terminate`() で状態がリセットされてもクリアされません。
-   * 複数のファイルを連続してライターを再利用する場合、チャネルは最初に使用する前に一度だけ追加すれば十分です。
-   *
-   * This method does not de-duplicate channels.
-   * このメソッドはチャネルの重複排除を行いません。
-   *
-   * @param channel Description of the channel to register. The `id` value is
-   *   ignored and will be set to a generated channel id.
-   * @param channel 登録するチャネルの説明。`id` の値は無視され、生成されたチャネルIDに設定されます。
-   */
+  /// <summary>
+  /// Adds a new channel and assigns a generated <c>channel.id</c>.
+  /// チャネルを登録し、生成した <c>channel.id</c> を設定します。
+  /// </summary>
+  /// <param name="channel">Channel to register. 登録するチャネル。</param>
   public void AddChannel(Channel channel)
   {
     channel.id = (ushort)(channels_.Count + 1);
     channels_.Add(channel);
   }
 
-  /**
-   * @brief Write a message to the output stream.
-   * @brief メッセージを出力ストリームに書き込みます。
-   *
-   * @param msg Message to add.
-   * @param msg 追加するメッセージ。
-   * @return A non-zero error code on failure。
-   * @return 失敗した場合はゼロ以外のエラーコード。
-   */
+  /// <summary>
+  /// Writes a message to the output stream.
+  /// メッセージを出力ストリームに書き込みます。
+  /// </summary>
+  /// <param name="message">Message to add. 追加するメッセージ。</param>
+  /// <returns>Non-zero error code on failure. 失敗時は非 0。</returns>
   public Status Write(Message message)
   {
     if (output_ == null)
@@ -499,16 +454,12 @@ public class McapWriter : IDisposable {
     return new Status(StatusCode.Success);
   }
 
-  /**
-   * @brief Write an attachment to the output stream.
-   * @brief アタッチメントを出力ストリームに書き込みます。
-   *
-   * @param attachment Attachment to add. The `attachment.crc` will be
-   * calculated and set if configuration options allow CRC calculation.
-   * @param attachment 追加するアタッチメント。`attachment.crc` は、設定オプションでCRC計算が許可されている場合に計算され設定されます。
-   * @return A non-zero error code on failure。
-   * @return 失敗した場合はゼロ以外のエラーコード。
-   */
+  /// <summary>
+  /// Writes an attachment to the output stream.
+  /// アタッチメントを出力ストリームに書き込みます。
+  /// </summary>
+  /// <param name="attachment">Attachment to add. 追加するアタッチメント。</param>
+  /// <returns>Non-zero error code on failure. 失敗時は非 0。</returns>
   public Status Write(Attachment attachment)
   {
     if (output_ == null)
@@ -557,15 +508,12 @@ public class McapWriter : IDisposable {
     return new Status(StatusCode.Success);
   }
 
-  /**
-   * @brief Write a metadata record to the output stream.
-   * @brief メタデータレコードを出力ストリームに書き込みます。
-   *
-   * @param metadata Named group of key/value string pairs to add.
-   * @param metadata 追加する名前付きのキー/値文字列ペアのグループ。
-   * @return A non-zero error code on failure。
-   * @return 失敗した場合はゼロ以外のエラーコード。
-   */
+  /// <summary>
+  /// Writes a metadata record to the output stream.
+  /// メタデータレコードを書き込みます。
+  /// </summary>
+  /// <param name="metadata">Metadata to add. 追加するメタデータ。</param>
+  /// <returns>Non-zero error code on failure. 失敗時は非 0。</returns>
   public Status Write(Metadata metadata)
   {
     if (output_ == null)
@@ -599,18 +547,16 @@ public class McapWriter : IDisposable {
     return new Status(StatusCode.Success);
   }
 
-  /**
-   * @brief Current MCAP file-level statistics. This is written as a Statistics
-   * record in the Summary section of the MCAP file.
-   * @brief 現在のMCAPファイルレベルの統計情報。これはMCAPファイルのサマリーセクションにStatisticsレコードとして書き込まれます。
-   */
+  /// <summary>
+  /// Current MCAP file-level statistics (written to Summary as a Statistics record).
+  /// 現在のファイル統計（サマリーに Statistics レコードとして出力）。
+  /// </summary>
   public Statistics Statistics { get { return statistics_; } }
 
-  /**
-   * @brief Returns a pointer to the Writable data destination backing this
-   * Writer. Will return nullptr if the Writer is not open.
-   * @brief このライターをバックアップするWritableデータ宛先へのポインタを返します。ライターが開いていない場合はnullptrを返します。
-   */
+  /// <summary>
+  /// Returns the underlying <see cref="Writable"/> sink, or <c>null</c> if not open.
+  /// バックエンドの <see cref="Writable"/>。未オープン時は <c>null</c>。
+  /// </summary>
   public Writable? DataSink{get { return output_; } }
 
   // The following static methods are used for serialization of records and

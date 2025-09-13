@@ -1,11 +1,8 @@
-/**
- * @brief The final record in an MCAP file (before the trailing magic byte
- * sequence). Contains byte offsets from the start of the file to the Summary
- * and Summary Offset sections, along with an optional CRC of the combined
- * Summary and Summary Offset sections. A `summaryStart` and
- * `summaryOffsetStart` of zero indicates no Summary section is available.
- */
 namespace McapCs.Record;
+/// <summary>
+/// Final record (before trailing magic) with offsets to Summary and Summary Offset.
+/// 末尾マジック直前のレコード。サマリとサマリオフセットへの位置を保持。
+/// </summary>
 public record Footer {
   public ulong summaryStart;
   public ulong summaryOffsetStart;
