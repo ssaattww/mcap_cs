@@ -6,6 +6,9 @@
 - 日本語で簡潔に記録・報告する（コマンドは必要に応じて併記）。
 - 必要最小限の探索・変更に留め、計画を小さく素早く回す。
 - TDD を優先し、テストで挙動を確認する。
+  - 仕様追加時は失敗する最小テスト→実装→リファクタの順で反復。
+  - Writer などI/O中心の処理はユニット＋スモークの二層で検証。
+- コードを編集するときには日本語のコメントを入れること
 
 ## Serena の使い方
 - 計画管理（必須）: `update_plan`
@@ -35,10 +38,44 @@
 - CI/テストは必要時のみ実行し、ログは簡潔に共有。
 - セキュリティ: 秘密情報をコミットしない。大きなバイナリは Git LFS。
 
+## テスト/検証方針（C# MCAP）
+- 基本: TDD を徹底（ユニット→結合→スモーク）。
+- 相互検証: Python 公式実装（`mcap`）で読み出し検証を行う。
+  - 目的: 圧縮チャンク（lz4/zstd/none）の相互運用性とレコード整合性の確認。
+  - 手順例:
+    - C#: `dotnet test csharp/McapCs.sln -c Release`
+    - 生成ファイルを Python で検証:
+      - インストール: `pip install mcap`（必要に応じて仮想環境）
+      - 読み込みサンプル:
+        - `python -c "from mcap.reader import make_reader; import sys; f=open(sys.argv[1],'rb'); r=make_reader(f); [(_ for _ in r.iter_messages())]; print('ok')" out.mcap`
+      - 圧縮名検査（任意）: `mcap info out.mcap` で `Compression: lz4|zstd|none` を確認。
+
+### MCAP Writer 圧縮の使い方（C#）
+- オプション例:
+  - `new McapWriterOptions(profile: "default", library: $"libmcap {Constants.MCAP_LIBRARY_VERSION}") { noChunking = false, compression = Compression.Zstd, compressionLevel = CompressionLevel.Default, forceCompression = true }`
+- コード例:
+  - 1) `var w = new McapWriter();`
+  - 2) `w.Open("out.mcap", options);`
+  - 3) スキーマ/チャネル登録 → メッセージ書き込み
+  - 4) `w.Close();`
+- 仕様: 書き込み中は非圧縮で蓄積し、`CloseLastChunk/Close` 時に `WriteChunk` 内で圧縮を試行。
+  - しきい値: サイズ>=約1KB、縮小率>=2% を満たすと `compression: lz4|zstd` を採用。満たさない場合は `none`。
+
+## 圧縮対応のTDD例（Writerのみ）
+- テストを先行して追加:
+  - 圧縮なし/あり（lz4, zstd）で小サイズ・しきい値前後・大サイズの各ケースを作成。
+  - チャンクヘッダの `compression` と `compressedSize/uncompressedSize` の関係を検証。
+  - CRC 有効/無効の動作を検証。
+- 実装方針:
+  - `ChunkWriter` 実装（`BufferWriter` に加え `Lz4ChunkWriter`/`ZstdChunkWriter`）を追加。
+  - `McapWriter.Open/GetChunkWriter/WriteChunk` で切替と圧縮データ採用条件（最小サイズ/比率）を適用。
+  - Python 公式実装で読み出し可能であることをスモーク確認。
+
 ## 例（ワークフロー）
 1. `update_plan` で小さな計画を作成
 2. `find_file`/`search_for_pattern` で関連箇所を特定
 3. `apply_patch` で変更
-4. ビルド/テスト（必要に応じて）
-5. `write_memory` にタスク要約＋検証ログを記録
-6. `think_about_whether_you_are_done` で完了確認
+4. ビルド/テスト（TDD）
+5. Python 公式実装で相互検証（必要に応じて `mcap info`/読取スクリプト）
+6. `write_memory` にタスク要約＋検証ログを記録
+7. `think_about_whether_you_are_done` で完了確認

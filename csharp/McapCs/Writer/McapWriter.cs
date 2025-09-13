@@ -48,6 +48,10 @@ public class McapWriter : IDisposable {
    *   will be written to this object.
    * @param options Options for MCAP writing. `profile` is required.
    */
+  // Writer を初期化してヘッダを書き込みます。
+  // 圧縮モード（LZ4/Zstd）であっても、書き込み中は非圧縮バッファに蓄積し、
+  // チャンクを閉じる際（WriteChunk）に実際の圧縮を行います。
+  // これにより、サイズ閾値や圧縮率に基づく「圧縮採否」の判断が可能になります。
   public void Open(Writable writer, McapWriterOptions options)
   {
     // If the writer was opened, close it first
@@ -57,6 +61,7 @@ public class McapWriter : IDisposable {
     chunkSize_ = options.noChunking ? 0 : options.chunkSize;
     compression_ = chunkSize_ > 0 ? options.compression : Compression.None;
 
+    // ここでは蓄積用の BufferWriter を用意します（圧縮は後段の WriteChunk で実施）。
     switch (compression_)
     {
       case Compression.None:
@@ -64,9 +69,13 @@ public class McapWriter : IDisposable {
         uncompressedChunk_ = new BufferWriter();
         break;
       case Compression.Lz4:
-        throw new NotImplementedException("LZ4 compression is not yet supported.");
+        // 圧縮モードでも蓄積先は BufferWriter。GetChunkWriter から同じインスタンスを返します。
+        uncompressedChunk_ = new BufferWriter();
+        break;
       case Compression.Zstd:
-        throw new NotImplementedException("Zstd compression is not yet supported.");
+        // 圧縮モードでも蓄積先は BufferWriter。GetChunkWriter から同じインスタンスを返します。
+        uncompressedChunk_ = new BufferWriter();
+        break;
     }
 
     var chunkWriter = GetChunkWriter();
@@ -78,6 +87,7 @@ public class McapWriter : IDisposable {
         chunkWriter.ResetCrc();
       }
     }
+    // データセクション全体の CRC を有効化（オプション）。
     writer.CrcEnabled = options.enableDataCRC;
     output_ = writer;
     WriteMagic(writer);
@@ -1094,11 +1104,27 @@ public class McapWriter : IDisposable {
         }
 
       case Compression.Lz4:
-        throw new NotImplementedException("LZ4 compression is not yet supported.");
+        // 蓄積は BufferWriter。圧縮は WriteChunk() 側で実施します。
+        if (uncompressedChunk_ == null)
+        {
+          uncompressedChunk_ = new BufferWriter();
+          uncompressedChunk_.CrcEnabled = !options_.noChunkCRC;
+        }
+        return uncompressedChunk_;
       case Compression.Zstd:
-        throw new NotImplementedException("Zstd compression is not yet supported.");
+        // 蓄積は BufferWriter。圧縮は WriteChunk() 側で実施します。
+        if (uncompressedChunk_ == null)
+        {
+          uncompressedChunk_ = new BufferWriter();
+          uncompressedChunk_.CrcEnabled = !options_.noChunkCRC;
+        }
+        return uncompressedChunk_;
     }
   }
+  // チャンクへの書き込み先（蓄積用）を取得します。
+  // 圧縮の有無に関わらず、レコードは一旦非圧縮バッファ（BufferWriter）に蓄積し、
+  // チャンクを閉じる段階（WriteChunk）で実際の圧縮（lz4/zstd）を行います。
+  // こうすることで「サイズ閾値・圧縮率」の判定後に、圧縮の採否を決められます。
   private ChunkWriter GetChunkWriter()
   {
     if (chunkSize_ == 0)
@@ -1106,6 +1132,9 @@ public class McapWriter : IDisposable {
       throw new InvalidOperationException("Chunking is not enabled.");
     }
 
+    // 圧縮モードでもここでは BufferWriter を返す点に注意：
+    // - 書き込み時点では非圧縮で蓄積し、uncompressed CRC を計算
+    // - WriteChunk 内で圧縮を実施し、圧縮の採否と compression 文字列（"lz4"/"zstd"/"none"）を確定
     switch (compression_)
     {
       case Compression.None:
@@ -1119,13 +1148,31 @@ public class McapWriter : IDisposable {
           return uncompressedChunk_;
         }
       case Compression.Lz4:
-        throw new NotImplementedException("LZ4 compression is not yet supported.");
+        // 蓄積中は BufferWriter を使用。実際の圧縮は WriteChunk() で一括実行します。
+        if (uncompressedChunk_ == null)
+        {
+          uncompressedChunk_ = new BufferWriter();
+          uncompressedChunk_.CrcEnabled = !options_.noChunkCRC;
+        }
+        return uncompressedChunk_;
       case Compression.Zstd:
-        throw new NotImplementedException("Zstd compression is not yet supported.");
+        // 蓄積中は BufferWriter を使用。実際の圧縮は WriteChunk() で一括実行します。
+        if (uncompressedChunk_ == null)
+        {
+          uncompressedChunk_ = new BufferWriter();
+          uncompressedChunk_.CrcEnabled = !options_.noChunkCRC;
+        }
+        return uncompressedChunk_;
     }
   }
+  // チャンクを確定して出力します。
+  // ここで初めて圧縮の実行と採否判定（lz4/zstd/none）を行います。
+  // 入力 chunkData は、GetChunkWriter() で返した BufferWriter（非圧縮蓄積）です。
   public void WriteChunk(Writable output, ChunkWriter chunkData)
   {
+    // 圧縮実施のしきい値と採用条件
+    // - LZ4/ZSTDともに、非常に小さいデータは圧縮効率が悪いため約1KB以上を目安とします
+    // - 圧縮後サイズが原サイズの98%未満（= 2%以上縮小）でなければ、非圧縮として書き出します
     // Both LZ4 and ZSTD recommend ~1KB as the minimum size for compressed data
     // LZ4とZSTDはどちらも、圧縮データの最小サイズとして約1KBを推奨しています
     const ulong MIN_COMPRESSION_SIZE = 1024;
@@ -1138,24 +1185,57 @@ public class McapWriter : IDisposable {
     ulong compressedSize = uncompressedSize;
     byte[] compressedData = chunkData.Data;
 
+    // 閾値（サイズまたは強制）を満たした場合のみ、圧縮を試行
     if (options_.forceCompression || uncompressedSize >= MIN_COMPRESSION_SIZE)
     {
       // Flush any in-progress compression stream
       // 進行中の圧縮ストリームをフラッシュします
       chunkData.End();
 
-      // Only use the compressed data if it is materially smaller than the
-      // uncompressed data
-      // 圧縮データが非圧縮データよりも実質的に小さい場合にのみ使用します
-      var compressionRatio = (double)uncompressedSize / (double)chunkData.CompressedSize;
+      // 実際に圧縮した結果サイズと比較して、採否を決める
+      ulong candidateSize = uncompressedSize;
+      byte[] candidateData = chunkData.Data;
+      Compression candidateAlgo = Compression.None;
+      // 選択アルゴリズムで圧縮を一度実施
+      switch (compression_)
+      {
+        case Compression.Lz4:
+        {
+          var lz4Writer = new Lz4ChunkWriter(MapLz4Level(options_.compressionLevel));
+          lz4Writer.CrcEnabled = chunkData.CrcEnabled;
+          lz4Writer.Write(chunkData.Data);
+          lz4Writer.End();
+          candidateAlgo = Compression.Lz4;
+          candidateSize = lz4Writer.CompressedSize;
+          candidateData = lz4Writer.CompressedData;
+          break;
+        }
+        case Compression.Zstd:
+        {
+          var zstdWriter = new ZstdChunkWriter(MapZstdLevel(options_.compressionLevel));
+          zstdWriter.CrcEnabled = chunkData.CrcEnabled;
+          zstdWriter.Write(chunkData.Data);
+          zstdWriter.End();
+          candidateAlgo = Compression.Zstd;
+          candidateSize = zstdWriter.CompressedSize;
+          candidateData = zstdWriter.CompressedData;
+          break;
+        }
+        case Compression.None:
+        default:
+          break;
+      }
+
+      var compressionRatio = candidateSize == 0 ? double.PositiveInfinity : (double)uncompressedSize / (double)candidateSize;
       if (options_.forceCompression || compressionRatio >= MIN_COMPRESSION_RATIO)
       {
-        compression = compression_;
-        compressedSize = chunkData.CompressedSize;
-        compressedData = chunkData.CompressedData;
+        compression = candidateAlgo;
+        compressedSize = candidateSize;
+        compressedData = candidateData;
       }
     }
 
+    // 採用結果に応じてヘッダの compression を設定（"lz4"/"zstd"/"none"）
     var compressionStr = compression.ToString().ToLower(); // Assuming Compression enum values match string representation
     var uncompressedCrc = chunkData.Crc;
 
@@ -1256,5 +1336,30 @@ public class McapWriter : IDisposable {
     // Reset the chunk writer
     // チャンクライターをリセットします
     chunkData.Clear();
+  }
+  private static K4os.Compression.LZ4.LZ4Level MapLz4Level(CompressionLevel level)
+  {
+    return level switch
+    {
+      CompressionLevel.Fastest => K4os.Compression.LZ4.LZ4Level.L00_FAST,
+      CompressionLevel.Fast => K4os.Compression.LZ4.LZ4Level.L03_HC,
+      CompressionLevel.Default => K4os.Compression.LZ4.LZ4Level.L06_HC,
+      CompressionLevel.Slow => K4os.Compression.LZ4.LZ4Level.L09_HC,
+      CompressionLevel.Slowest => K4os.Compression.LZ4.LZ4Level.L12_MAX,
+      _ => K4os.Compression.LZ4.LZ4Level.L06_HC,
+    };
+  }
+
+  private static int MapZstdLevel(CompressionLevel level)
+  {
+    return level switch
+    {
+      CompressionLevel.Fastest => 1,
+      CompressionLevel.Fast => 3,
+      CompressionLevel.Default => 5,
+      CompressionLevel.Slow => 10,
+      CompressionLevel.Slowest => 19,
+      _ => 5,
+    };
   }
 };
