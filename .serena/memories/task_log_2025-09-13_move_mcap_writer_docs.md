@@ -1,0 +1,1 @@
+AGENTS.md の「MCAP Writer 圧縮の使い方（C#）」を csharp/McapCs/Writer/README.md に移設。AGENTS.md 側は参照化。検証は検索で当該セクション位置を特定（AGENTS.md:66行付近）。影響はドキュメントのみでコード変更なし。今後は README 側に集約して更新する運用。

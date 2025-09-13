@@ -23,6 +23,20 @@
 - 思考チェック: `think_about_task_adherence`/`think_about_collected_information`/`think_about_whether_you_are_done`
   - 編集前後で自己点検し、脱線や取りこぼしを避ける。
 
+### Serena 必須ルール（Codex 連携）
+- セッション開始時: このディレクトリを Serena プロジェクトとして必ず有効化する。
+  - serena__activate_project を使い、プロジェクト名は mcap_cs（または絶対パス）。
+  - .serena/project.yml の language: csharp を確認。異なる場合は再アクティベート。
+- 解析/探索は Serena ツールを優先: get_symbols_overview / find_symbol / find_referencing_symbols / search_for_pattern。
+  - 結果が大きい場合は relative_path（例: csharp/…）や max_answer_chars を調整。
+- LSP 同期ずれ時: C# シンボルが解決できない場合はプロジェクトを再アクティベート。可能なら restart_language_server を使用。
+- OmniSharp（C# LSP）:
+  - PATH に omnisharp を用意。優先度は「ネイティブ OmniSharp → OmniSharp.dll を dotnet + DOTNET_ROLL_FORWARD=Major → run/mono（最終手段）」。
+  - 簡易検証は omnisharp --help / --version を 3–5 秒のタイムアウト付きで実行。
+  - 連携確認の基準: csharp/McapCs/Writer/McapWriter.cs の McapWriter クラスおよび WriteChunk メソッドが find_symbol で解決できること。
+- プレアンブル: 複数の関連ツール呼び出し前に、意図と次ステップを 1–2 文で共有する。
+- 承認: ネットワークアクセスや破壊的操作はユーザーの承認（既定: on-request）を得る。
+
 ## 記録粒度（既定）
 - 既定は「タスク単位＋検証ログ」。
   - タスク単位: 主要変更点・影響・検証方法を短く列挙。
@@ -51,15 +65,7 @@
       - 圧縮名検査（任意）: `mcap info out.mcap` で `Compression: lz4|zstd|none` を確認。
 
 ### MCAP Writer 圧縮の使い方（C#）
-- オプション例:
-  - `new McapWriterOptions(profile: "default", library: $"libmcap {Constants.MCAP_LIBRARY_VERSION}") { noChunking = false, compression = Compression.Zstd, compressionLevel = CompressionLevel.Default, forceCompression = true }`
-- コード例:
-  - 1) `var w = new McapWriter();`
-  - 2) `w.Open("out.mcap", options);`
-  - 3) スキーマ/チャネル登録 → メッセージ書き込み
-  - 4) `w.Close();`
-- 仕様: 書き込み中は非圧縮で蓄積し、`CloseLastChunk/Close` 時に `WriteChunk` 内で圧縮を試行。
-  - しきい値: サイズ>=約1KB、縮小率>=2% を満たすと `compression: lz4|zstd` を採用。満たさない場合は `none`。
+この内容はドキュメントを `csharp/McapCs/Writer/README.md` に移しました。最新情報はそちらを参照してください。
 
 ## 圧縮対応のTDD例（Writerのみ）
 - テストを先行して追加:
