@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-このスクリプトは、現在の C# McapReader で読み取り可能な「非圧縮」の MCAP ファイルを生成します。
+このスクリプトは「非圧縮」の MCAP ファイルを生成します（Python mcap 公式実装）。
 
 使い方:
-  PYTHONPATH=python/mcap python3 csharp/McapFileVerificationApp/gen_uncompressed_mcap.py 出力先.mcap
+  python3 gen_uncompressed.py 出力先.mcap
 
-注意:
-- python/examples/raw/writer.py を変更せず、直接 mcap の Writer を CompressionType.NONE で使用します。
+前提:
+  python3 -m venv .venv && . .venv/bin/activate && python -m pip install mcap
 """
 import json
 import sys
@@ -15,7 +15,7 @@ from time import time_ns
 try:
     from mcap.writer import Writer, CompressionType
 except Exception as e:
-    print("mcap.writer のインポートに失敗しました。PYTHONPATH に 'python/mcap'（リポジトリルート配下）を含めてください。", file=sys.stderr)
+    print("mcap.writer のインポートに失敗しました。'python -m pip install mcap' を実行してください。", file=sys.stderr)
     raise
 
 
