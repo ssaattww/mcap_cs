@@ -1,10 +1,9 @@
-/**
- * @brief An Attachment is an arbitrary file embedded in an MCAP file, including
- * a name, media type, timestamps, and optional CRC. Attachment records are
- * written in the Data section, outside of Chunks.
- */
 namespace McapCs.Record;
 
+/// <summary>
+/// Arbitrary file embedded in the MCAP (name, media type, timestamps, optional CRC).
+/// 任意のファイルを埋め込むレコード（名前/メディア種別/タイムスタンプ/CRC）。
+/// </summary>
 public struct Attachment
 {
   public ulong logTime;

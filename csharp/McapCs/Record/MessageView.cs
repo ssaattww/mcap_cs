@@ -1,11 +1,9 @@
-/**
- * @brief Returned when iterating over Messages in a file, MessageView contains
- * a reference to one Message, a pointer to its Channel, and an optional pointer
- * to that Channel's Schema. The Channel pointer is guaranteed to be valid,
- * while the Schema pointer may be null if the Channel references schema_id 0.
- */
 namespace McapCs.Record;
 
+/// <summary>
+/// View returned when iterating: message, its channel, and optional schema.
+/// メッセージと対応チャネル、任意のスキーマをまとめたビュー。
+/// </summary>
 public struct MessageView
 {
   public Message message;

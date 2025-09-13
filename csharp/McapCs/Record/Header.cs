@@ -1,12 +1,9 @@
-/**
- * @brief Appears at the beginning of every MCAP file (after the magic byte
- * sequence) and contains the recording profile (see
- * <https://github.com/foxglove/mcap/tree/main/docs/specification/profiles>) and
- * a string signature of the recording library.
- */
-
 namespace McapCs.Record;
 
+/// <summary>
+/// File header written after magic; contains recording profile and library string.
+/// 先頭マジック直後に現れるヘッダ。プロファイルとライブラリ文字列を保持します。
+/// </summary>
 public struct Header
 {
   public string profile;

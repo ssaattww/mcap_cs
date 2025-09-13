@@ -1,10 +1,9 @@
-/**
- * @brief Chunk Index records are found in the Summary section, providing
- * summary information for a single Chunk and pointing to each Message Index
- * record associated with that Chunk.
- */
 namespace McapCs.Record;
 
+/// <summary>
+/// Summary info for a chunk and pointers to its message indexes.
+/// チャンクのサマリ情報とメッセージインデックスへの参照。
+/// </summary>
 public struct ChunkIndex
 {
   public ulong messageStartTime;

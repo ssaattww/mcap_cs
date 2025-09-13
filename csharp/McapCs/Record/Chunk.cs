@@ -1,9 +1,9 @@
-/**
- * @brief An collection of Schemas, Channels, and Messages that supports
- * compression and indexing.
- */
 namespace McapCs.Record;
 
+/// <summary>
+/// Collection of schemas/channels/messages supporting compression and indexing.
+/// 圧縮と索引付けを備えたレコード集合。
+/// </summary>
 public struct Chunk
 {
   public ulong messageStartTime;

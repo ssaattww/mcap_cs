@@ -6,17 +6,31 @@ using McapCs.Record;
 
 namespace McapCs.Reader;
 
+/// <summary>
+/// Simple MCAP reader for iterating records/messages.
+/// MCAP ファイルの基本的な読み取りを行うクラス。
+/// </summary>
 public class McapReader : IDisposable
 {
   private Stream? _stream;
   private BinaryReader? _reader;
 
+  /// <summary>Header record if present. ヘッダレコード。</summary>
   public Header? Header { get; private set; }
+  /// <summary>Footer record if present. フッタレコード。</summary>
   public Footer? Footer { get; private set; }
+  /// <summary>All schemas keyed by id. スキーマ一覧（id で索引）。</summary>
   public Dictionary<ushort, Schema> Schemas { get; } = new();
+  /// <summary>All channels keyed by id. チャネル一覧（id で索引）。</summary>
   public Dictionary<ushort, Channel> Channels { get; } = new();
+  /// <summary>Collected messages. 収集したメッセージ。</summary>
   public List<Message> Messages { get; } = new();
 
+  /// <summary>
+  /// Opens and parses an MCAP file from path.
+  /// ファイルパスから開いて解析します。
+  /// </summary>
+  /// <param name="filePath">Path to the MCAP file. ファイルパス。</param>
   public void Open(string filePath)
   {
     Close();
@@ -27,6 +41,11 @@ public class McapReader : IDisposable
     ReadRecords(_reader, lengthLimit: -1);
   }
 
+  /// <summary>
+  /// Opens and parses an MCAP file from a stream.
+  /// ストリームから開いて解析します。
+  /// </summary>
+  /// <param name="stream">Readable stream. 読み取り用ストリーム。</param>
   public void Open(Stream stream)
   {
     Close();
@@ -36,8 +55,14 @@ public class McapReader : IDisposable
     ReadRecords(_reader, lengthLimit: -1);
   }
 
+  /// <summary>
+  /// Returns the parsed messages. 解析済みメッセージを列挙します。
+  /// </summary>
   public IEnumerable<Message> ReadMessages() => Messages;
 
+  /// <summary>
+  /// Closes the reader and clears all state. リーダーを閉じ状態を破棄します。
+  /// </summary>
   public void Close()
   {
     _reader?.Dispose();
@@ -51,9 +76,14 @@ public class McapReader : IDisposable
     Messages.Clear();
   }
 
+  /// <summary>Disposes the reader. リーダーを破棄します。</summary>
   public void Dispose() => Close();
 
-  // 先頭マジック（8バイト）を検証する
+  /// <summary>
+  /// Validates and consumes the leading magic bytes.
+  /// 先頭マジック（8バイト）を検証して読み進めます。
+  /// </summary>
+  /// <param name="reader">Source reader. 入力リーダー。</param>
   private static void ReadMagic(BinaryReader reader)
   {
     var expected = Constants.Magic;
@@ -71,6 +101,12 @@ public class McapReader : IDisposable
     }
   }
 
+  /// <summary>
+  /// Reads records until the given length limit or end of stream.
+  /// 指定された長さ上限またはストリーム終端までレコードを読み込みます。
+  /// </summary>
+  /// <param name="reader">Record reader. レコード読み取り用リーダー。</param>
+  /// <param name="lengthLimit">Maximum number of bytes to read; -1 for no limit. 読み取り上限（-1 で無制限）。</param>
   private void ReadRecords(BinaryReader reader, long lengthLimit)
   {
     long startPos = reader.BaseStream.Position;
@@ -216,6 +252,12 @@ public class McapReader : IDisposable
     }
   }
 
+  /// <summary>
+  /// Reads a length-prefixed UTF-8 string.
+  /// 長さ付き（UInt32）UTF-8 文字列を読み込みます。
+  /// </summary>
+  /// <param name="reader">Source reader. 入力リーダー。</param>
+  /// <returns>Decoded string. 文字列。</returns>
   private static string ReadString(BinaryReader reader)
   {
     uint len = reader.ReadUInt32();
@@ -224,6 +266,12 @@ public class McapReader : IDisposable
     return Encoding.UTF8.GetString(bytes);
   }
 
+  /// <summary>
+  /// Reads a length-prefixed byte array.
+  /// 長さ付き（UInt32）バイト列を読み込みます。
+  /// </summary>
+  /// <param name="reader">Source reader. 入力リーダー。</param>
+  /// <returns>Byte array (may be empty). バイト配列（空の可能性あり）。</returns>
   private static byte[] ReadBytesWithLength(BinaryReader reader)
   {
     uint len = reader.ReadUInt32();
@@ -231,6 +279,13 @@ public class McapReader : IDisposable
     return reader.ReadBytes((int)len);
   }
 
+  /// <summary>
+  /// Reads a map encoded as length-prefixed key/value string pairs within the given total size.
+  /// 指定サイズ内にエンコードされた長さ付きキー/値（文字列）ペアのマップを読み込みます。
+  /// </summary>
+  /// <param name="reader">Source reader. 入力リーダー。</param>
+  /// <param name="totalSize">Total size of the encoded map payload. マップのエンコード領域の総サイズ。</param>
+  /// <returns>Dictionary of key/value pairs. キー/値のディクショナリ。</returns>
   private static Dictionary<string, string> ReadKeyValueMap(BinaryReader reader, uint totalSize)
   {
     var map = new Dictionary<string, string>();

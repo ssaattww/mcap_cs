@@ -1,9 +1,9 @@
-/**
- * @brief A list of timestamps to byte offsets for a single Channel. This record
- * appears after each Chunk, one per Channel that appeared in that Chunk.
- */
 namespace McapCs.Record;
 
+/// <summary>
+/// List of (logTime, offset) pairs for a single channel; follows each chunk.
+/// 単一チャネルの (時刻, オフセット) の一覧。各チャンクの後に出現。
+/// </summary>
 public struct MessageIndex
 {
   public ushort channelId;

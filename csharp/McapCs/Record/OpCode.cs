@@ -1,7 +1,8 @@
-/**
- * @brief MCAP record types.
- */
 namespace McapCs.Record;
+/// <summary>
+/// MCAP record types.
+/// MCAP レコード種別。
+/// </summary>
 public enum EOpCode : byte
 {
   Header = 0x01,

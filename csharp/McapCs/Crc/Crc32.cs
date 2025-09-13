@@ -77,6 +77,13 @@ public static class Crc32
         return crc ^ 0xFFFFFFFF;
     }
 
+    /// <summary>
+    /// Reads a 32-bit little-endian unsigned integer from the byte array at the given offset.
+    /// 指定オフセットのバイト配列から 32-bit リトルエンディアンの符号なし整数を読み取ります。
+    /// </summary>
+    /// <param name="data">Source byte array. 入力バイト列。</param>
+    /// <param name="offset">Start index within <paramref name="data"/>. 開始位置。</param>
+    /// <returns>The 32-bit value. 32ビット値。</returns>
     private static uint GetUint32LE(byte[] data, int offset)
     {
         return (uint)(data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24));

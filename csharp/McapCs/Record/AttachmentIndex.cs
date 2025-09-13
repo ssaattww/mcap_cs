@@ -1,9 +1,9 @@
-/**
- * @brief Attachment Index records are found in the Summary section, providing
- * summary information for a single Attachment.
- */
 namespace McapCs.Record;
 
+/// <summary>
+/// Summary index for a single Attachment, stored in the Summary section.
+/// サマリに保存される添付ファイルの索引エントリ。
+/// </summary>
 public struct AttachmentIndex
 {
   public ulong offset;

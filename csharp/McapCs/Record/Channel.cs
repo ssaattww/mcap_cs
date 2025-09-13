@@ -1,12 +1,8 @@
-/**
- * @brief Describes a Channel that messages are written to. A Channel represents
- * a single connection from a publisher to a topic, so each topic will have one
- * Channel per publisher. Channels optionally reference a Schema, for message
- * encodings that are not self-describing (e.g. JSON) or when schema information
- * is available (e.g. JSONSchema).
- */
-
 namespace McapCs.Record;
+/// <summary>
+/// Describes a Channel that messages are written to.
+/// メッセージの書き込み先となるチャネルを表します。
+/// </summary>
 public struct Channel {
   public ushort id;
   public string topic = string.Empty;

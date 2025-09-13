@@ -1,11 +1,11 @@
-/**
- * @brief Metadata Index records are found in the Summary section, providing
- * summary information for a single Metadata record.
- */
 namespace McapCs.Record;
 
 using McapCs.Util;
 
+/// <summary>
+/// Summary index entry for a single Metadata record.
+/// メタデータレコード用のサマリ索引。
+/// </summary>
 public struct MetadataIndex
 {
   public ulong offset;

@@ -28,6 +28,7 @@ public class FileWriter : Writable, IDisposable
     _size = 0;
   }
 
+  /// <inheritdoc/>
   public override ulong Size
   {
     get
