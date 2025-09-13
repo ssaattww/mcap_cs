@@ -31,6 +31,14 @@ namespace McapFileVerificationApp
                 return;
             }
 
+            if (args.Length >= 3 && args[0] == "--write-compressed")
+            {
+                var algo = args[1]; // none|lz4|zstd
+                var outputPath = args[2];
+                WriteSampleCompressed(outputPath, algo);
+                return;
+            }
+
             // デフォルト動作: ヘルプ表示（日本語）
             PrintHelp();
         }
@@ -38,8 +46,9 @@ namespace McapFileVerificationApp
         static void PrintHelp()
         {
             Console.WriteLine("使い方:");
-            Console.WriteLine("  --read <path>   指定した MCAP ファイルを読み込み、内容を表示します");
-            Console.WriteLine("  --write <path>  サンプルの MCAP ファイル（非圧縮）を出力します");
+            Console.WriteLine("  --read <path>                 指定した MCAP ファイルを読み込み、内容を表示します");
+            Console.WriteLine("  --write <path>                サンプルの MCAP ファイル（非圧縮）を出力します");
+            Console.WriteLine("  --write-compressed <algo> <path>  圧縮アルゴリズム（none|lz4|zstd）で出力します");
         }
 
         static void ReadAndPrint(string path)
@@ -126,6 +135,59 @@ namespace McapFileVerificationApp
             writer.Close();
 
             Console.WriteLine($"MCAP ファイルを出力しました: {Path.GetFullPath(outputPath)}");
+        }
+
+        static void WriteSampleCompressed(string outputPath, string algo)
+        {
+            using var writer = new McapWriter();
+            var compression = algo.ToLower() switch
+            {
+                "none" => McapCs.Types.Compression.None,
+                "lz4" => McapCs.Types.Compression.Lz4,
+                "zstd" => McapCs.Types.Compression.Zstd,
+                _ => McapCs.Types.Compression.None,
+            };
+            var options = new McapWriterOptions("test_profile", "mcap_cs_app")
+            {
+                compression = compression,
+                chunkSize = 1024,
+                forceCompression = true,
+                compressionLevel = McapCs.Types.CompressionLevel.Default,
+            };
+            writer.Open(outputPath, options);
+
+            var schema = new Schema(
+                name: "sample",
+                encoding: "jsonschema",
+                data: Encoding.UTF8.GetBytes("{\"type\":\"object\",\"properties\":{\"sample\":{\"type\":\"string\"}}}").ToList());
+            writer.AddSchema(schema);
+
+            var channel = new Channel(
+                topic: "sample_topic",
+                messageEncoding: "json",
+                schemaId: schema.id,
+                metadata: new Dictionary<string, string>());
+            writer.AddChannel(channel);
+
+            // 圧縮効果が出やすい繰り返しデータ
+            var sb = new StringBuilder();
+            for (int i = 0; i < 2000; i++) sb.Append('A');
+            var payload = Encoding.UTF8.GetBytes($"{{\"sample\":\"{sb}\"}}");
+
+            var now = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var message = new Message
+            {
+                channelId = 1,
+                sequence = 1,
+                logTime = now,
+                publishTime = now,
+                data = payload.ToList(),
+                dataSize = (ulong)payload.Length,
+            };
+            writer.Write(message);
+            writer.Close();
+
+            Console.WriteLine($"MCAP ファイルを出力しました (algo={algo}): {Path.GetFullPath(outputPath)}");
         }
     }
 }
