@@ -33,7 +33,7 @@
 - OmniSharp（C# LSP）:
   - PATH に omnisharp を用意。優先度は「ネイティブ OmniSharp → OmniSharp.dll を dotnet + DOTNET_ROLL_FORWARD=Major → run/mono（最終手段）」。
   - 簡易検証は omnisharp --help / --version を 3–5 秒のタイムアウト付きで実行。
-  - 連携確認の基準: csharp/McapCs/Writer/McapWriter.cs の McapWriter クラスおよび WriteChunk メソッドが find_symbol で解決できること。
+  - 連携確認の基準: McapCs/Writer/McapWriter.cs の McapWriter クラスおよび WriteChunk メソッドが find_symbol で解決できること。
 - プレアンブル: 複数の関連ツール呼び出し前に、意図と次ステップを 1–2 文で共有する。
 - 承認: ネットワークアクセスや破壊的操作はユーザーの承認（既定: on-request）を得る。
 
@@ -57,7 +57,7 @@
 - 相互検証: Python 公式実装（`mcap`）で読み出し検証を行う。
   - 目的: 圧縮チャンク（lz4/zstd/none）の相互運用性とレコード整合性の確認。
   - 手順例:
-    - C#: `dotnet test csharp/McapCs.sln -c Release`
+    - C#: `dotnet test McapCs.sln -c Release`
     - 生成ファイルを Python で検証:
       - インストール: `pip install mcap`（必要に応じて仮想環境）
       - 読み込みサンプル:
@@ -65,7 +65,7 @@
       - 圧縮名検査（任意）: `mcap info out.mcap` で `Compression: lz4|zstd|none` を確認。
 
 ### MCAP Writer 圧縮の使い方（C#）
-この内容はドキュメントを `csharp/McapCs/Writer/README.md` に移しました。最新情報はそちらを参照してください。
+この内容はドキュメントを `McapCs/Writer/README.md` に移しました。最新情報はそちらを参照してください。
 
 ## 圧縮対応のTDD例（Writerのみ）
 - テストを先行して追加:
